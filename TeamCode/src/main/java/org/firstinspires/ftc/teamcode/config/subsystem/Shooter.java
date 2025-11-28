@@ -15,7 +15,7 @@ public class Shooter extends SubsystemBase {
     private final CRServo leftFeeder, rightFeeder;
 
     // Tuning (Editable in Dashboard)
-    public static double TARGET_VELOCITY = 1125;
+    public static double TARGET_VELOCITY = 1400;
     public static double REVERSE_VELOCITY = -1125;
     public static double TOLERANCE = 50;
 
@@ -27,7 +27,7 @@ public class Shooter extends SubsystemBase {
         launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
-                new PIDFCoefficients(300, 0, 0, 10));
+                new PIDFCoefficients(600, 0, 0, 10));
 
         leftFeeder.setDirection(DcMotorSimple.Direction.FORWARD);
         rightFeeder.setDirection(DcMotorSimple.Direction.REVERSE);

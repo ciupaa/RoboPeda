@@ -48,13 +48,13 @@ public class RealAuto extends OpModeCommand {
                         // --- STEP 2: Shoot 3 Times (Right Bumper Logic) ---
                         new SequentialCommandGroup(
                                 new ShootCommand(r.shooter), // Shot 1
-                                new WaitCommand(500),  // Wait 0.5s
+                                new WaitCommand(600),  // Wait 0.5s
 
                                 new ShootCommand(r.shooter), // Shot 2
-                                new WaitCommand(500),  // Wait 0.5s
+                                new WaitCommand(600),  // Wait 0.5s
 
                                 new ShootCommand(r.shooter), // Shot 3
-                                new WaitCommand(500)   // Safety Wait
+                                new WaitCommand(600)   // Safety Wait
                         ),
 
                         // --- STEP 3: Drive Path 2 ---
