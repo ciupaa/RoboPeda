@@ -5,41 +5,48 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
-import com.pedropathing.ftc.localization.constants.OTOSConstants;
 import com.pedropathing.ftc.localization.constants.PinpointConstants;
-import com.pedropathing.ftc.localization.localizers.OTOSLocalizer;
 import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(10)
-            .forwardZeroPowerAcceleration(-42.072)
-            .lateralZeroPowerAcceleration(-67.58)
-            .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(3, 0, .04, 0))
-            .headingPIDFCoefficients(new PIDFCoefficients(1, 0, 0.01, 0))
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.015,0,0.003,0))
-            .useSecondaryDrivePIDF(true)
-            .useSecondaryHeadingPIDF(true)
-            .useSecondaryTranslationalPIDF(true);
+            .mass(7.50)
+            .forwardZeroPowerAcceleration(-45.343)
+            //.lateralZeroPowerAcceleration(-67.58)
+            //.secondaryHeadingPIDFCoefficients(new PIDFCoefficients(3, 0, .04, 0))
+            //.headingPIDFCoefficients(new PIDFCoefficients(1, 0, 0.01, 0))
+            //.translationalPIDFCoefficients(new PIDFCoefficients(0.015,0,0.003,0))
+            //.useSecondaryDrivePIDF(true)
+            //.useSecondaryHeadingPIDF(true)
+            //.useSecondaryTranslationalPIDF(true)
+            ;
 
     public static MecanumConstants mecanumConstants = new MecanumConstants()
             .useBrakeModeInTeleOp(true)
-            .xVelocity(76.82)
-            .yVelocity(61.54)
-            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
+            .xVelocity(82.6278)
+            .yVelocity(49.1836)
+
+            // --- MOTOR NAMES (Romanian) ---
+            .leftFrontMotorName("fata_stanga")
+            .rightFrontMotorName("fata_dreapta")
+            .leftRearMotorName("spate_stanga")
+            .rightRearMotorName("spate_dreapta")
+
+            // --- FIX: DIRECTIONS FLIPPED ---
+            // Left = FORWARD, Right = REVERSE
+            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE);
+
     public static PinpointConstants pinpointConstants = new PinpointConstants()
-            .forwardPodY(-5)
-            .strafePodX(3)
-            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
-            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);
+            .forwardPodY(13)
+            .strafePodX(13)
+            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
+            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.975, 100, 1, 1);
 

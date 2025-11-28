@@ -3,18 +3,18 @@ package org.firstinspires.ftc.teamcode.config;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import org.firstinspires.ftc.teamcode.config.pedro.Constants;
 import org.firstinspires.ftc.teamcode.config.subsystem.MecanumDrive;
 import org.firstinspires.ftc.teamcode.config.subsystem.Shooter;
 import org.firstinspires.ftc.teamcode.config.util.Alliance;
-import org.firstinspires.ftc.teamcode.config.pedro.Constants; // <--- ADD THIS IMPORT
 
 import java.util.List;
 
 public class Robot {
     // PUBLIC Subsystems
     public final MecanumDrive drive;
-    public final Shooter shooter;
-    public final Follower f; // PedroPathing Follower
+    public final Shooter shooter; // Variable name is 'shooter'
+    public final Follower f;
     public Alliance alliance;
 
     private final List<LynxModule> allHubs;
@@ -27,7 +27,7 @@ public class Robot {
         shooter = new Shooter(hardwareMap);
 
         // 2. Initialize PedroPathing Follower
-        // FIX: Use the method inside Constants to create the follower
+        // Uses the method inside Constants to create the follower with correct motor names
         f = Constants.createFollower(hardwareMap);
 
         // 3. Configure Bulk Caching

@@ -17,7 +17,9 @@ public class MecanumDrive {
         bl = hardwareMap.get(DcMotor.class, "spate_stanga");
         br = hardwareMap.get(DcMotor.class, "spate_dreapta");
 
-        // Directions
+        // --- FIX: DIRECTIONS FLIPPED ---
+        // Left = FORWARD, Right = REVERSE
+        // This fixes "Forward goes Backward"
         fl.setDirection(DcMotor.Direction.FORWARD);
         bl.setDirection(DcMotor.Direction.FORWARD);
         fr.setDirection(DcMotor.Direction.REVERSE);
@@ -44,7 +46,7 @@ public class MecanumDrive {
         double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
         double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
 
-        rotX = rotX * 1.1; // Counteract imperfect strafing
+        rotX = rotX * 1; // Counteract imperfect strafing
 
         double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
         double frontLeftPower = (rotY + rotX + rx) / denominator;
