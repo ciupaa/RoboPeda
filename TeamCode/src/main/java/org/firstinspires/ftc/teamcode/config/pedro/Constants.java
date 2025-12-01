@@ -17,23 +17,24 @@ public class Constants {
 
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(7.50)
-            .forwardZeroPowerAcceleration(-38.936)
-            .lateralZeroPowerAcceleration(-65.965)
+           // .forwardZeroPowerAcceleration(-38.936)
+           // .lateralZeroPowerAcceleration(-65.965)
 
             // Primary PIDs
-            .headingPIDFCoefficients(new PIDFCoefficients(1.0, 0, 0.01, 0))
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.3, 0, 0.0, 0.018))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.02, 0, 0.001, 0.6, 0))
+           // .headingPIDFCoefficients(new PIDFCoefficients(1.0, 0, 0.01, 0))
+           // .translationalPIDFCoefficients(new PIDFCoefficients(0.3, 0, 0.0, 0.018))
+           // .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.02, 0, 0.001, 0.6, 0))
 
             // Secondary PIDs
-            .useSecondaryHeadingPIDF(true)
-            .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(3.0, 0, 0.04, 0))
+           // .useSecondaryHeadingPIDF(true)
+            //.secondaryHeadingPIDFCoefficients(new PIDFCoefficients(3.0, 0, 0.04, 0))
 
-            .useSecondaryTranslationalPIDF(true)
-            .secondaryTranslationalPIDFCoefficients(new PIDFCoefficients(0.6, 0, 0.04, 0.02))
+           // .useSecondaryTranslationalPIDF(true)
+           // .secondaryTranslationalPIDFCoefficients(new PIDFCoefficients(0.6, 0, 0.04, 0.02))
 
-            .useSecondaryDrivePIDF(true)
-            .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.1, 0, 0.01, 0.6, 0));
+           // .useSecondaryDrivePIDF(true)
+           // .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.1, 0, 0.01, 0.6, 0))
+    ;
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
@@ -49,7 +50,15 @@ public class Constants {
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(13)
+            // distanta dreapta sau stanga la centrul de grautate al robotului,
+            // adica la ce INCH e distantata roata de centrul robotului, nu trebuie masurata distanta
+            // la centru ci doar pana pe axa centrului
             .strafePodX(13)
+            // distanta de unde se afla roata pana la centrul robotului, adica daca roata e in fata,
+            // cati INCH is de la ea pana la centru ( fata/spate)
+            // noi am masurat prost, pt ca am luat la ambele roti cati CM, dar trebuie INCH si trebuie doar la roata de strafe sa masuram
+            // distanta pana la centru, la roata de fata spate e distanta pana sa fie pe linie cu centrul, nu in centru
+
             .distanceUnit(DistanceUnit.CM)
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
