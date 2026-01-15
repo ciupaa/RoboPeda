@@ -18,36 +18,45 @@ public class ShooterTuningTeleOp extends OpMode {
     public void loop() {
         r.periodic();
 
-        // Driving
-        r.drive.driveFieldCentric(gamepad1.left_stick_x, -gamepad1.left_stick_y, -gamepad1.right_stick_x);
+        r.drive.driveFieldCentric(-gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
         if (gamepad1.options) r.drive.resetHeading();
 
-        // 2 Speeds Testing
+        // Shared Logic with Main TeleOp
         if (gamepad1.right_bumper) {
-            r.shooter.setTargetVelocity(1450); // High Speed Test
-            r.shooter.spinUp();
-        } else if (gamepad1.left_bumper) {
-            r.shooter.setTargetVelocity(1100); // Low Speed Test
-            r.shooter.spinUp();
-        } else {
+            r.shooter.spinHigh();
+            r.shooter.setAngle(1.0);
+        }
+        else if (gamepad1.left_bumper) {
+            r.shooter.spinLow();
+            r.shooter.setAngle(0.91);
+            r.intake.outtakeSuperSlow();
+        }
+        else if (gamepad1.x) {
+            r.intake.intake();
+            r.shooter.reverse();
+        }
+        else if (gamepad1.y) {
+            r.intake.outtakeSlow();
+        }
+        else if (gamepad1.dpad_left) {
+            r.shooter.reverse();
+        }
+        else {
             r.shooter.stop();
+            r.intake.stop();
         }
 
-        // Angle Tuning
+        // Small increments (0.01) for fine-tuning
         if (gamepad1.dpad_up && !lastUp) currentAngle += 0.01;
         if (gamepad1.dpad_down && !lastDown) currentAngle -= 0.01;
         lastUp = gamepad1.dpad_up; lastDown = gamepad1.dpad_down;
 
-        currentAngle = Math.max(0, Math.min(1, currentAngle));
-        r.shooter.setAngle(currentAngle);
+        if (!gamepad1.left_bumper && !gamepad1.right_bumper) {
+            currentAngle = Math.max(0, Math.min(1, currentAngle));
+            r.shooter.setAngle(currentAngle);
+        }
 
-        // Intake Test
-        if (gamepad1.x) r.intake.intake();
-        else if (gamepad1.y) r.intake.outtake();
-        else r.intake.stop();
-
-        telemetry.addData("CURRENT ANGLE", "%.2f", currentAngle);
-        telemetry.addData("Shooter Velocity", r.shooter.getVelocity());
+        telemetry.addData("Live Tuning Angle", currentAngle);
         telemetry.update();
     }
 }

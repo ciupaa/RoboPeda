@@ -5,20 +5,22 @@ import org.firstinspires.ftc.teamcode.config.subsystem.Intake;
 
 public class IntakeCommand extends CommandBase {
     private final Intake intake;
-    private final boolean reverse;
+    private final boolean slowOuttake;
 
-    public IntakeCommand(Intake intake, boolean reverse) {
+    public IntakeCommand(Intake intake, boolean slowOuttake) {
         this.intake = intake;
-        this.reverse = reverse;
+        this.slowOuttake = slowOuttake;
         addRequirements(intake);
     }
 
     @Override
     public void initialize() {
-        if (reverse) intake.outtake();
+        if (slowOuttake) intake.outtakeSlow();
         else intake.intake();
     }
 
     @Override
-    public void end(boolean interrupted) { intake.stop(); }
+    public void end(boolean interrupted) {
+        intake.stop();
+    }
 }

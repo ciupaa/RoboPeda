@@ -22,7 +22,6 @@ public class Robot {
         shooter = new Shooter(hardwareMap);
         intake = new Intake(hardwareMap);
         f = Constants.createFollower(hardwareMap);
-
         allHubs = hardwareMap.getAll(LynxModule.class);
         for (LynxModule hub : allHubs) hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
     }
@@ -30,7 +29,7 @@ public class Robot {
     public void periodic() {
         for (LynxModule hub : allHubs) hub.clearBulkCache();
         f.update();
-        shooter.periodic();
+        shooter.periodic(); // Important for Live Tuning
         intake.periodic();
     }
 }

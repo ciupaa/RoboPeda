@@ -1,31 +1,21 @@
 package org.firstinspires.ftc.teamcode.config.subsystem;
 
-import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 
-@Config
 public class Intake extends SubsystemBase {
     private final DcMotorEx intakeMotor;
 
-    public static double INTAKE_VELO = 1200;
-    public static double OUTTAKE_VELO = -1000;
-
     public Intake(HardwareMap hardwareMap) {
         intakeMotor = hardwareMap.get(DcMotorEx.class, "intake");
-        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        intakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        // Configure your PIDF here
-        intakeMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
-                new PIDFCoefficients(15, 3, 0, 12));
+        intakeMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
-    public void intake() { intakeMotor.setVelocity(INTAKE_VELO); }
-    public void outtake() { intakeMotor.setVelocity(OUTTAKE_VELO); }
+    public void intake() { intakeMotor.setVelocity(800); }
+    public void outtakeSlow() { intakeMotor.setVelocity(-450); }
+    public void outtakeSuperSlow() { intakeMotor.setVelocity(-250); }
     public void stop() { intakeMotor.setVelocity(0); }
-    public double getVelocity() { return intakeMotor.getVelocity(); }
 }

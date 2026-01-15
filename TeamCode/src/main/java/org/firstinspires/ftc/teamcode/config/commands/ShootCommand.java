@@ -5,21 +5,21 @@ import org.firstinspires.ftc.teamcode.config.subsystem.Shooter;
 
 public class ShootCommand extends CommandBase {
     private final Shooter shooter;
-    private final double targetAngle;
-    private final double velocity;
+    private final double angle;
+    private final boolean high;
 
-    public ShootCommand(Shooter shooter, double velocity, double targetAngle) {
+    public ShootCommand(Shooter shooter, boolean high, double angle) {
         this.shooter = shooter;
-        this.velocity = velocity;
-        this.targetAngle = targetAngle;
+        this.high = high;
+        this.angle = angle;
         addRequirements(shooter);
     }
 
     @Override
     public void initialize() {
-        shooter.setTargetVelocity(velocity);
-        shooter.spinUp();
-        shooter.setAngle(targetAngle);
+        if (high) shooter.spinHigh();
+        else shooter.spinLow();
+        shooter.setAngle(angle);
     }
 
     @Override
