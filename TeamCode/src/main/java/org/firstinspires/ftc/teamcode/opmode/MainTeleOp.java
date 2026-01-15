@@ -18,8 +18,14 @@ public class MainTeleOp extends OpMode {
     // RUMBLE FLAGS
     private boolean endgameRumbled = false;
 
+    // MICRO-ADJUSTMENT VARIABLES
+    private boolean lastUp = false, lastDown = false;
+    // These replace the hardcoded numbers so you can change them live
+    private double highPreset = 0.9;
+    private double lowPreset = 0.7;
+    private double idlePreset = 1.0;
+
     // CONSTANTS
-    private final double INTAKE_ANGLE = 1.0;  // Standard Position (Down)
     private final double SERVO_SPEED_FACTOR = 600.0; // Higher = Safer Wait
     private final double VELOCITY_TOLERANCE = 50;
 
@@ -40,16 +46,37 @@ public class MainTeleOp extends OpMode {
         }
 
         // 2. ENDGAME RUMBLE (2 Minutes)
-        // getRuntime() returns seconds since START was pressed
         if (getRuntime() >= 120 && !endgameRumbled) {
             gamepad1.rumble(2000); // Rumble for 2 seconds
-            endgameRumbled = true; // Ensure it only happens once
+            endgameRumbled = true;
         }
+
+        // --- MICRO-ADJUSTMENTS (Context Aware) ---
+        // 0.1 Increment per click
+        if (gamepad1.dpad_up && !lastUp) {
+            if (gamepad1.right_bumper) highPreset += 0.1;
+            else if (gamepad1.left_bumper) lowPreset += 0.1;
+            else idlePreset += 0.1;
+        }
+        if (gamepad1.dpad_down && !lastDown) {
+            if (gamepad1.right_bumper) highPreset -= 0.1;
+            else if (gamepad1.left_bumper) lowPreset -= 0.1;
+            else idlePreset -= 0.1;
+        }
+        lastUp = gamepad1.dpad_up;
+        lastDown = gamepad1.dpad_down;
+
+        // Safety Clamps (0.0 to 1.0)
+        highPreset = Math.max(0, Math.min(1, highPreset));
+        lowPreset = Math.max(0, Math.min(1, lowPreset));
+        idlePreset = Math.max(0, Math.min(1, idlePreset));
+
 
         // 3. SHOOTING LOGIC (Bumpers)
         if (gamepad1.right_bumper || gamepad1.left_bumper) {
 
-            double targetAngle = gamepad1.right_bumper ? 0.9 : 0.7;
+            // Use the adjustable presets instead of hardcoded numbers
+            double targetAngle = gamepad1.right_bumper ? highPreset : lowPreset;
             double targetVel = gamepad1.right_bumper ? 1550 : 1200;
 
             // -- INITIALIZE SEQUENCE --
@@ -63,6 +90,9 @@ public class MainTeleOp extends OpMode {
                 r.shooter.setAngle(targetAngle);
                 servoTimer.reset();
                 isShooting = true;
+            } else {
+                // Keep updating angle in case you adjust Dpad WHILE shooting
+                r.shooter.setAngle(targetAngle);
             }
 
             // -- EXECUTE SEQUENCE --
@@ -91,7 +121,7 @@ public class MainTeleOp extends OpMode {
         // 4. INTAKE MODE (X)
         else if (gamepad1.x) {
             isShooting = false;
-            r.shooter.setAngle(INTAKE_ANGLE); // Ensure Down
+            r.shooter.setAngle(idlePreset); // Use adjusted idle
             r.intake.intake();       // Feed Forward
             r.shooter.reverse();     // Launcher Backward
         }
@@ -100,7 +130,7 @@ public class MainTeleOp extends OpMode {
             isShooting = false;
 
             // Standard position when nothing is requested
-            r.shooter.setAngle(INTAKE_ANGLE);
+            r.shooter.setAngle(idlePreset); // Use adjusted idle
 
             r.shooter.stop();
             r.intake.stop();
@@ -111,6 +141,12 @@ public class MainTeleOp extends OpMode {
 
         telemetry.addData("State", isShooting ? "SHOOTING" : "IDLE/STANDARD");
         telemetry.addData("Match Time", "%.1f", getRuntime());
+
+        // Show the adjustable values so you know what they are
+        telemetry.addData("High Preset (RB+Dpad)", "%.2f", highPreset);
+        telemetry.addData("Low Preset (LB+Dpad)", "%.2f", lowPreset);
+        telemetry.addData("Idle Preset (Dpad)", "%.2f", idlePreset);
+
         telemetry.addLine("Ciupa BOSS");
         telemetry.addLine("Cristi si Mario is niste slabi");
         telemetry.update();
