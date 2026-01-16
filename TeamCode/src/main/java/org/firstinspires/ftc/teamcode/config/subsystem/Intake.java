@@ -12,9 +12,8 @@ public class Intake extends SubsystemBase {
     private final DcMotorEx intakeMotor;
 
     // --- SAFETY TUNING ---
-    // UPDATED: Set to 3.5 Amps as requested.
-    // If it triggers too often (false alarm), increase this number in the Dashboard.
-    public static double JAM_THRESHOLD = 3.5;
+    // 6.0 Amps (Stops if exceeded)
+    public static double JAM_THRESHOLD = 6.0;
 
     public Intake(HardwareMap hardwareMap) {
         intakeMotor = hardwareMap.get(DcMotorEx.class, "intake");
@@ -27,7 +26,6 @@ public class Intake extends SubsystemBase {
     public void outtakeSuperSlow() { intakeMotor.setVelocity(-250); }
     public void stop() { intakeMotor.setVelocity(0); }
 
-    // Check how much power the motor is pulling
     public double getCurrentDraw() {
         return intakeMotor.getCurrent(CurrentUnit.AMPS);
     }

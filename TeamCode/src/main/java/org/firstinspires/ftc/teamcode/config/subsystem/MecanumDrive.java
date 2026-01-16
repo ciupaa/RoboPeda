@@ -33,6 +33,7 @@ public class MecanumDrive {
         imu.initialize(parameters);
     }
 
+    // --- FIELD CENTRIC (Old) ---
     public void driveFieldCentric(double x, double y, double rx) {
         double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
@@ -44,6 +45,17 @@ public class MecanumDrive {
         bl.setPower((rotY - rotX + rx) / denominator);
         fr.setPower((rotY - rotX - rx) / denominator);
         br.setPower((rotY + rotX - rx) / denominator);
+    }
+
+    // --- ROBOT CENTRIC (New) ---
+    public void driveRobotCentric(double x, double y, double rx) {
+        // No Gyro Math - Just pure inputs
+        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+
+        fl.setPower((y + x + rx) / denominator);
+        bl.setPower((y - x + rx) / denominator);
+        fr.setPower((y - x - rx) / denominator);
+        br.setPower((y + x - rx) / denominator);
     }
 
     public void resetHeading() { imu.resetYaw(); }
