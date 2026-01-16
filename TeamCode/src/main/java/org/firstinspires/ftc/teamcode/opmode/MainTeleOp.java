@@ -73,8 +73,8 @@ public class MainTeleOp extends OpMode {
 
         // --- MICRO-ADJUSTMENTS ---
         if (gamepad1.dpad_up && !lastUp) {
-            if (gamepad1.right_bumper) highPreset += 0.1;
-            else if (gamepad1.left_bumper) lowPreset += 0.1;
+            if (gamepad1.right_bumper) highPreset += 0.01;
+            else if (gamepad1.left_bumper) lowPreset += 0.01;
             else idlePreset += 0.1;
         }
         if (gamepad1.dpad_down && !lastDown) {
@@ -220,7 +220,7 @@ public class MainTeleOp extends OpMode {
         telemetry.addData("Low Preset", "%.2f", lowPreset);
         telemetry.addData("Idle Preset", "%.2f", idlePreset);
         telemetry.addLine("Ciupa BOSS");
-        telemetry.addLine("Cristi si Mario is si ei SMECHERI");
+        telemetry.addLine("Cristi si Mario is si ei Pseudo-SMECHERI");
         telemetry.update();
     }
 }
