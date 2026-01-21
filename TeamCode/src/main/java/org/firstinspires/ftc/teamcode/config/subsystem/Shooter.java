@@ -7,19 +7,22 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 
 /**
  * FILE: Shooter.java
- * PURPOSE: Controls the Flywheel (Launcher) and Angle Adjustment.
- * FEATURES: PIDF Velocity Control, Servo Positioning, Feeder Control.
+ * PURPOSE: Controls the Flywheel (Launcher) and the Blocker Arm.
+ * FEATURES:
+ * - PIDF Velocity Control for consistent shots.
+ * - Servo Positioning for aiming.
+ * - Blocker Arm ("Gate") to control when rings enter the flywheel.
  */
 @Config // Allows editing variables live in Dashboard
 public class Shooter extends SubsystemBase {
     private final DcMotorEx launcher;
     private final Servo angle;
-    private CRServo leftFeeder, rightFeeder;
+    // NEW: Blocker Servo to stop rings from entering prematurely
+    private final Servo blocker;
 
     // --- TUNING VALUES ---
     // P = Proportional (Power boost based on error)
@@ -35,17 +38,16 @@ public class Shooter extends SubsystemBase {
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         angle = hardwareMap.get(Servo.class, "angle");
 
-        // Try-Catch protects against crashing if feeders aren't in Config
-        try {
-            leftFeeder = hardwareMap.get(CRServo.class, "left_feeder");
-            rightFeeder = hardwareMap.get(CRServo.class, "right_feeder");
-            rightFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
-        } catch (Exception e) {}
+        // NEW: Initialize Blocker Servo and set to Closed (0.0)
+        // Position 0 = Down (Blocking)
+        // Position 1 = Up (Shooting)
+        blocker = hardwareMap.get(Servo.class, "test_block_servo");
+        blocker.setPosition(0.0);
 
-        // Brake Mode: Motor stops instantly when power is 0
-        launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        // Brake Mode: CHANGED TO FLOAT so it coasts on inertia (Saves Battery)
+        launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        // Run Using Encoder: Necessary for Velocity (RPM) control
+        // Encoder Mode: Essential for maintaining specific Velocity (RPM)
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launcher.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -60,6 +62,7 @@ public class Shooter extends SubsystemBase {
 
     @Override
     public void periodic() {
+        // Live Tuning: Updates PIDF if you change it in Dashboard while running
         updatePIDF();
     }
 
@@ -67,26 +70,30 @@ public class Shooter extends SubsystemBase {
     public void setAngle(double pos) { angle.setPosition(pos); }
     public double getAngle() { return angle.getPosition(); }
 
+    // NEW: Blocker Methods
+    // "Block" puts the arm DOWN to stop intake items from hitting the wheel
+    public void block() { blocker.setPosition(0.0); }
+
+    // "Unblock" lifts the arm UP to let items shoot
+    public void unblock() { blocker.setPosition(1.0); }
+
     public void spinHigh() { launcher.setVelocity(TARGET_VELOCITY); }
     public void spinLow() { launcher.setVelocity(1200); }
 
+    // Manual reverse if something gets stuck
     public void reverse() {
         launcher.setVelocity(-1125);
-        if(leftFeeder != null) { leftFeeder.setPower(-1.0); rightFeeder.setPower(-1.0); }
     }
 
     public void stop() {
-        launcher.setVelocity(0);
-        stopFeeders();
+        // CHANGED: Set Power to 0 to let it coast (Float).
+        // Velocity 0 would actively brake, wasting energy.
+        launcher.setPower(0);
     }
 
-    public void feed() {
-        if(leftFeeder != null) { leftFeeder.setPower(1.0); rightFeeder.setPower(1.0); }
-    }
-
-    public void stopFeeders() {
-        if(leftFeeder != null) { leftFeeder.setPower(0); rightFeeder.setPower(0); }
-    }
+    // Kept empty methods to preserve compatibility with other files if needed
+    public void feed() {}
+    public void stopFeeders() {}
 
     public double getVelocity() { return launcher.getVelocity(); }
 }

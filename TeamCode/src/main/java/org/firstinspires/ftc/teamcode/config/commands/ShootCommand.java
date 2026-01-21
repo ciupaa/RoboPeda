@@ -11,45 +11,61 @@ public class ShootCommand extends CommandBase {
     private final boolean isHighShot;
     private boolean hasFed = false;
 
+    // Constructor: Passes the subsystem and settings
     public ShootCommand(Shooter shooter, boolean isHighShot, double targetAngle) {
         this.shooter = shooter;
         this.isHighShot = isHighShot;
         this.targetAngle = targetAngle;
-        addRequirements(shooter); // Locks the subsystem
+
+        // IMPORTANT: 'addRequirements' tells the scheduler we are using the Shooter
+        addRequirements(shooter);
     }
 
+    // Called once when the command starts
     @Override
     public void initialize() {
-        // Set Angle & Speed
+        // Set Angle
         shooter.setAngle(targetAngle);
+
+        // Start Flywheel (Spin Up)
         if (isHighShot) shooter.spinHigh();
         else shooter.spinLow();
+
+        // Ensure Blocked (Gate Down) while spinning up
+        shooter.block();
 
         timer.resetTimer();
         hasFed = false;
     }
 
+    // Called repeatedly (50 times/sec)
     @Override
     public void execute() {
-        // Wait condition: Not yet fed AND (Speed is good OR Timeout passed)
+        // Wait logic:
+        // IF we haven't fed the ring yet...
+        // AND (The motor is at correct speed OR we have waited too long/timeout)
         if (!hasFed && (Math.abs(shooter.getVelocity() - Shooter.TARGET_VELOCITY) < 50 || timer.getElapsedTimeSeconds() > 1.5)) {
-            shooter.feed();
-            timer.resetTimer(); // Reset timer to count feed duration
+
+            // NEW: Open the gate to shoot
+            shooter.unblock();
+
+            timer.resetTimer(); // Reset timer to count how long we keep gate open
             hasFed = true;
         }
     }
 
+    // Returns true when the command is done
     @Override
     public boolean isFinished() {
-        // Finish after 0.5s of feeding
+        // We are done if we have triggered the gate AND 0.5 seconds have passed
         return hasFed && timer.getElapsedTimeSeconds() > 0.5;
     }
 
+    // Called once when finished
     @Override
     public void end(boolean interrupted) {
-        // Shutdown
-        shooter.stop();
-        shooter.stopFeeders();
-        shooter.setAngle(1.0);
+        shooter.stop(); // Turn off flywheel (Coasts)
+        shooter.block(); // Close the gate
+        shooter.setAngle(1.0); // Reset angle to Idle
     }
 }

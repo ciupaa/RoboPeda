@@ -14,8 +14,8 @@ import org.firstinspires.ftc.teamcode.config.subsystem.Intake;
  * - Left Stick:  Robot movement (Robot Centric).
  * - Right Stick: Fast rotation.
  * - Triggers:    Slow rotation (Precision mode, 30% speed).
- * - Right/Left Bumper: Shoot High/Low Goal.
- * - X Button:    Intake (Holds to intake, Releases to Burp/Unjam).
+ * - Right/Left Bumper: Shoot High/Low Goal (Smart Shot Sequence).
+ * - X Button:    Intake (Holds to intake).
  * - Y Button:    Manual Outtake.
  * - D-Pad Up/Down: Micro-adjust the shooter angle.
  */
@@ -29,18 +29,14 @@ public class MainTeleOp extends OpMode {
     // Timer to wait for the servo to reach its angle before shooting
     private ElapsedTime servoTimer = new ElapsedTime();
 
-    // Timer to track the stages of the "Release Sequence" (Burp -> Wait -> Reverse)
-    private ElapsedTime releaseTimer = new ElapsedTime();
-
     private double calculatedWaitTime = 0; // How long to wait based on distance moved
     private boolean isShooting = false;    // Are we currently in the middle of a shot?
-    private boolean isReleasing = false;   // Are we actively running the Burp/Reverse sequence?
 
     // RUMBLE FLAGS (To prevent the controller from vibrating endlessly)
     private boolean endgameRumbled = false;
     private boolean jamRumbled = false;
 
-    // BUTTON MEMORY (Used to detect when a button is *released*)
+    // BUTTON MEMORY
     private boolean lastX = false;
     private boolean lastUp = false, lastDown = false;
 
@@ -60,6 +56,9 @@ public class MainTeleOp extends OpMode {
     public void init() {
         // Initialize the robot hardware
         r = new Robot(hardwareMap, Alliance.BLUE);
+
+        // IMPORTANT: Ensure blocker is DOWN (0) at start to protect the flywheel
+        r.shooter.block();
     }
 
     @Override
@@ -77,7 +76,7 @@ public class MainTeleOp extends OpMode {
         double stickTurn = -gamepad1.right_stick_x;
 
         // B. TRIGGER TURN (Slow - 30% Power)
-        // Left Trigger turns Left (+), Right Trigger turns Right (-)
+        // Left Trigger turns Left, Right Trigger turns Right
         double triggerTurn = (gamepad1.left_trigger * 0.3) - (gamepad1.right_trigger * 0.3);
 
         // Combine inputs: Stick + Triggers
@@ -125,12 +124,10 @@ public class MainTeleOp extends OpMode {
         // PRIORITY 1: SHOOTING (Bumpers)
         if (gamepad1.right_bumper || gamepad1.left_bumper) {
             jamRumbled = false;
-            isReleasing = false; // Cancel any active burp sequence
 
             double targetAngle = gamepad1.right_bumper ? highPreset : lowPreset;
             double targetVel = gamepad1.right_bumper ? 1550 : 1200;
 
-            // Step A: Setup (First Loop Only)
             if (!isShooting) {
                 // Calculate wait time based on how far the servo needs to move
                 double currentPos = r.shooter.getAngle();
@@ -144,47 +141,52 @@ public class MainTeleOp extends OpMode {
                 r.shooter.setAngle(targetAngle); // Hold angle
             }
 
-            // Step B: Wait & Fire
+            // Wait for Servo to Arrive
             if (servoTimer.milliseconds() >= calculatedWaitTime) {
                 // Spin Flywheel
                 if (gamepad1.right_bumper) r.shooter.spinHigh();
                 else r.shooter.spinLow();
 
-                // Only feed (shoot) if the flywheel is up to speed
+                // NEW LOGIC: CHECK SPEED -> UNBLOCK -> FEED
+                // We only lift the blocker gate if the wheel is fast enough.
                 if (r.shooter.getVelocity() >= (targetVel - VELOCITY_TOLERANCE)) {
-                    r.intake.intake();
+                    r.shooter.unblock(); // Position 1 (Gate Open)
+                    r.intake.intake();   // Run intake to push ring
                 } else {
-                    r.intake.stop(); // Prevent jamming if motor slows down
+                    r.shooter.block();   // Position 0 (Gate Closed)
+                    r.intake.stop();     // Wait for speed
                 }
             } else {
-                // Still waiting for servo...
+                // Still waiting for servo angle...
+                // Coast motor (Power 0), Keep Blocked
                 r.shooter.stop();
                 r.intake.stop();
+                r.shooter.block();
             }
         }
 
         // PRIORITY 2: INTAKE (X Button)
         else if (gamepad1.x) {
             isShooting = false;
-            isReleasing = false; // Reset the release sequence if we press X again
 
             r.shooter.setAngle(idlePreset);
-            r.shooter.stop();
+            r.shooter.stop(); // Coast (Power 0)
+
+            // IMPORTANT: Force Blocker DOWN to stop rings from hitting wheel
+            r.shooter.block();
 
             // JAM PROTECTION: Check motor Amps
-            double currentAmps = r.intake.getCurrentDraw();
+            // CHANGED: Only warns (Rumble), does NOT stop the motor anymore.
+            r.intake.intake();
 
+            double currentAmps = r.intake.getCurrentDraw();
             if (currentAmps > Intake.JAM_THRESHOLD) {
-                // JAM DETECTED (Over 6.0A) -> STOP!
-                r.intake.stop();
                 if (!jamRumbled) {
-                    gamepad1.rumble(500);
+                    gamepad1.rumble(300);
                     jamRumbled = true;
                 }
                 telemetry.addData("WARNING", "INTAKE OVERLOAD! (%.1f A)", currentAmps);
             } else {
-                // Safe to run
-                r.intake.intake();
                 jamRumbled = false;
             }
         }
@@ -192,62 +194,26 @@ public class MainTeleOp extends OpMode {
         // PRIORITY 3: OUTTAKE (Y Button)
         else if (gamepad1.y) {
             isShooting = false;
-            isReleasing = false;
             jamRumbled = false;
             r.shooter.setAngle(idlePreset);
             r.intake.outtakeSlow();
-            r.shooter.stop();
+            r.shooter.stop(); // Coast
+            r.shooter.block(); // Keep blocked
         }
 
-        // PRIORITY 4: RELEASE SEQUENCE (Smart Burp + Unjam)
-        else if (isReleasing) {
-            double t = releaseTimer.milliseconds();
-
-            // Phase A: Burp (0ms - 150ms)
-            // Quickly reverse intake to clear the "Flywheel Rub"
-            if (t < 150) {
-                r.intake.outtakeSuperSlow();
-                r.shooter.stop();
-                telemetry.addData("Seq", "Burping...");
-            }
-            // Phase B: Wait (150ms - 1150ms)
-            // 1 Second of silence to let things settle
-            else if (t < 1150) {
-                r.intake.stop();
-                r.shooter.stop();
-                telemetry.addData("Seq", "Waiting 1s...");
-            }
-            // Phase C: Reverse Launcher (1150ms - 1650ms)
-            // Run Launcher backwards for 0.5s to clear internal jams
-            else if (t < 1650) {
-                r.intake.stop();
-                r.shooter.reverse();
-                telemetry.addData("Seq", "Reversing Launcher...");
-            }
-            // Phase D: Done
-            else {
-                isReleasing = false;
-                r.shooter.stop();
-                r.intake.stop();
-            }
-        }
-
-        // PRIORITY 5: IDLE / CHECK RELEASE TRIGGER
+        // PRIORITY 4: IDLE
         else {
             isShooting = false;
             jamRumbled = false;
 
-            // CHECK: Did we just release the X button?
-            if (lastX) {
-                isReleasing = true; // Start the Sequence
-                releaseTimer.reset();
-            }
-
             r.shooter.setAngle(idlePreset);
-            r.shooter.stop();
+            r.shooter.stop(); // Coast (Preserves battery/inertia)
             r.intake.stop();
 
-            // Manual Override (D-Pad Left)
+            // DEFAULT STATE: Gate Closed
+            r.shooter.block();
+
+            // Manual Override (D-Pad Left) to reverse shooter
             if (gamepad1.dpad_left) r.shooter.reverse();
         }
 
@@ -255,8 +221,8 @@ public class MainTeleOp extends OpMode {
         lastX = gamepad1.x;
 
         // Telemetry (Debug Info)
-        telemetry.addData("State", isShooting ? "SHOOTING" : (isReleasing ? "RELEASE SEQ" : "IDLE"));
-        telemetry.addData("Servo Factor", "%.0f ms/unit", SERVO_SPEED_FACTOR);
+        telemetry.addData("State", isShooting ? "SHOOTING" : "IDLE");
+        telemetry.addData("Blocker", r.shooter.getVelocity() > 1000 && isShooting ? "OPEN (1)" : "CLOSED (0)");
         telemetry.addData("Amps", "%.2f A", r.intake.getCurrentDraw());
 
         telemetry.addData("High Preset", "%.2f", highPreset);
@@ -264,7 +230,7 @@ public class MainTeleOp extends OpMode {
         telemetry.addData("Idle Preset", "%.2f", idlePreset);
 
         telemetry.addLine("Ciupa BOSS");
-        telemetry.addLine("Cristi si Mario is niste slabi");
+        telemetry.addLine("Cristi si Mario is si ei smecheri");
         telemetry.update();
     }
 }
