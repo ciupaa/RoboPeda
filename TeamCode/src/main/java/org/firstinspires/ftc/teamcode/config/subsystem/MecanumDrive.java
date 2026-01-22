@@ -52,11 +52,12 @@ public class MecanumDrive {
         // Denominator ensures no motor is commanded > 1.0 (100%)
         double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
 
-        fl.setPower((y + x + rx) / denominator);
-        bl.setPower((y - x + rx) / denominator);
-        fr.setPower((y - x - rx) / denominator);
-        br.setPower((y + x - rx) / denominator);
-    }
+        // FIX: Inverted the 'x' signs here to fix reversed strafing.
+        // If x is positive (stick right), we now subtract it from left wheels.
 
-    public void resetHeading() { imu.resetYaw(); }
+        fl.setPower((y - x + rx) / denominator);
+        bl.setPower((y + x + rx) / denominator);
+        fr.setPower((y + x - rx) / denominator);
+        br.setPower((y - x - rx) / denominator);
+    }
 }
