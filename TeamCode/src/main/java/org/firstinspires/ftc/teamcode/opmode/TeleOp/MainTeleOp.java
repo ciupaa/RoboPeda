@@ -53,7 +53,7 @@ public class MainTeleOp extends OpMode {
         r.periodic();
 
         // 1. DRIVING
-        double y = -gamepad1.left_stick_y;
+        double y = gamepad1.left_stick_y;
         double x = gamepad1.left_stick_x;
         double finalRx = -gamepad1.right_stick_x + (gamepad1.left_trigger * 0.3) - (gamepad1.right_trigger * 0.3);
 
