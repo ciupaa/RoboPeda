@@ -7,16 +7,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
-/**
- * FILE: Intake.java
- * PURPOSE: Controls the Intake Motor.
- * FEATURE: Current Sensing (Amps) to detect physical jams.
- */
 @Config
 public class Intake extends SubsystemBase {
     private final DcMotorEx intakeMotor;
-
-    // JAM THRESHOLD: If motor pulls > 6.0 Amps, it is stuck.
     public static double JAM_THRESHOLD = 6.0;
 
     public Intake(HardwareMap hardwareMap) {
@@ -30,9 +23,6 @@ public class Intake extends SubsystemBase {
     public void outtakeSuperSlow() { intakeMotor.setVelocity(-250); }
     public void stop() { intakeMotor.setVelocity(0); }
 
-    /**
-     * @return Electrical current in Amps. Used for Jam Detection.
-     */
     public double getCurrentDraw() {
         return intakeMotor.getCurrent(CurrentUnit.AMPS);
     }

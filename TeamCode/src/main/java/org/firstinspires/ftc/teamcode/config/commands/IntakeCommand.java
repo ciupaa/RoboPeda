@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.config.commands;
 import com.seattlesolvers.solverslib.command.CommandBase;
 import org.firstinspires.ftc.teamcode.config.subsystem.Intake;
 
-// A simple command to run the intake.
 public class IntakeCommand extends CommandBase {
     private final Intake intake;
     private final boolean slowOuttake;
