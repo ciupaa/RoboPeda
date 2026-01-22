@@ -26,7 +26,7 @@ public class Shooter extends SubsystemBase {
     // --- POSITIONS ---
     // 0.85 = Closed (Default)
     // 0.24 = Open (Shooting)
-    public double blockPos = 0.85;
+    public double blockPos = 0.87;
     public double unblockPos = 0.24;
 
     public Shooter(HardwareMap hardwareMap) {
