@@ -48,7 +48,7 @@ public class RealAuto extends OpModeCommand {
 
                         // STEP 3: SHOOT
                         // High Goal, Angle 0.65
-                        new ShootCommand(r.shooter, true, 0.65),
+                        new ShootCommand(r.shooter, r.intake, true, 0.65),
 
                         // STEP 4: DRIVE PATH 3
                         new FollowPath(r, p.paths.Path3),
