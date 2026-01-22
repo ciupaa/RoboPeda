@@ -11,7 +11,7 @@ import com.seattlesolvers.solverslib.command.SubsystemBase;
 
 @Config
 public class Shooter extends SubsystemBase {
-    private final DcMotorEx launcher;
+    public final DcMotorEx launcher;
     private final Servo angle;
     private final Servo blocker;
 
