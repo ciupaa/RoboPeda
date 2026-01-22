@@ -34,15 +34,19 @@ public class Shooter extends SubsystemBase {
 
     public static double TARGET_VELOCITY = 1550;
 
+    // --- SERVO PRESETS (Now adjustable) ---
+    // Position 0.8 = Down (Blocking/Closed)
+    // Position 0.3 = Up (Shooting/Open)
+    public double blockPos = 0.85;
+    public double unblockPos = 0.24;
+
     public Shooter(HardwareMap hardwareMap) {
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         angle = hardwareMap.get(Servo.class, "angle");
 
         // NEW: Initialize Blocker Servo and set to Closed (0.0)
-        // Position 0 = Down (Blocking)
-        // Position 1 = Up (Shooting)
         blocker = hardwareMap.get(Servo.class, "test_block_servo");
-        blocker.setPosition(0.0);
+        blocker.setPosition(blockPos);
 
         // Brake Mode: CHANGED TO FLOAT so it coasts on inertia (Saves Battery)
         launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -70,12 +74,12 @@ public class Shooter extends SubsystemBase {
     public void setAngle(double pos) { angle.setPosition(pos); }
     public double getAngle() { return angle.getPosition(); }
 
-    // NEW: Blocker Methods
+    // NEW: Blocker Methods using adjustable variables
     // "Block" puts the arm DOWN to stop intake items from hitting the wheel
-    public void block() { blocker.setPosition(0.0); }
+    public void block() { blocker.setPosition(blockPos); }
 
     // "Unblock" lifts the arm UP to let items shoot
-    public void unblock() { blocker.setPosition(1.0); }
+    public void unblock() { blocker.setPosition(unblockPos); }
 
     public void spinHigh() { launcher.setVelocity(TARGET_VELOCITY); }
     public void spinLow() { launcher.setVelocity(1200); }
