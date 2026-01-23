@@ -9,40 +9,41 @@ import org.firstinspires.ftc.teamcode.config.util.Alliance;
 import org.firstinspires.ftc.teamcode.config.subsystem.Intake;
 
 /**
- * Standard TeleOp - No Limelight
- * Velocity-based ball feeding with manual shooter control
- *
- * CONTROLS:
- * - Left Stick: Drive (strafe/forward)
- * - Right Stick X: Rotate
- * - Left/Right Trigger: Fine rotation adjustment
- * - Right Bumper: High shot (far)
- * - Left Bumper: Low shot (close)
- * - X: Intake
- * - Y: Outtake
- * - D-Pad Left: Reverse launcher
+ * Standard TeleOp - FASTER CLOSE RANGE
+ * Left bumper (1200 velocity) spins up faster!
  */
 @TeleOp(name = "Main TeleOp", group = "Competition")
 public class MainTeleOp extends OpMode {
 
     private Robot r;
     private final ElapsedTime recoveryTimer = new ElapsedTime();
+    private final ElapsedTime feedTimer = new ElapsedTime();
 
     // RUMBLE FLAGS
     private boolean endgameRumbled = false;
     private boolean jamRumbled = false;
 
-    // SHOOTER PRESETS (tune before match)
-    private static final double HIGH_PRESET = 0.65;  // Far shot
-    private static final double LOW_PRESET = 0.70;   // Close shot
+    // YOUR WORKING PRESETS
+    private static final double HIGH_PRESET = 0.65;  // Far shot - 1550 velocity
+    private static final double LOW_PRESET = 0.70;   // Close shot - 1200 velocity
     private static final double IDLE_PRESET = 1.0;   // Safe position
 
-    // VELOCITY DETECTION CONSTANTS
-    private static final double VELOCITY_DROP_THRESHOLD = 100;
-    private static final double MIN_RECOVERY_TIME_MS = 80;
-    private static final double VELOCITY_READY_THRESHOLD = 50;
+    // PULSE FEEDING STRATEGY
+    private static final double FEED_PULSE_MS = 120;
+    private static final double FEED_PAUSE_MS = 100;
+    private static final double VELOCITY_DROP_THRESHOLD = 150;
+    private static final double MIN_RECOVERY_TIME_MS = 400;
 
-    private enum ShootState { WAIT_SPINUP, FEEDING, WAIT_RECOVERY }
+    // VELOCITY READY THRESHOLD - DIFFERENT FOR HIGH vs LOW
+    private static final double HIGH_VELOCITY_THRESHOLD = 80;  // Far shot needs to be closer
+    private static final double LOW_VELOCITY_THRESHOLD = 120;  // Close shot can start sooner! (was 80)
+
+    private enum ShootState {
+        WAIT_SPINUP,
+        PULSE_FEED,
+        PULSE_PAUSE,
+        WAIT_RECOVERY
+    }
     private ShootState shootState = ShootState.WAIT_SPINUP;
 
     private double currentTargetVel = 0.0;
@@ -53,7 +54,7 @@ public class MainTeleOp extends OpMode {
         r = new Robot(hardwareMap, Alliance.BLUE);
         r.shooter.block();
         telemetry.addData("Status", "Initialized");
-        telemetry.addData("Mode", "Standard TeleOp");
+        telemetry.addData("Mode", "FASTER Close Range");
     }
 
     @Override
@@ -71,14 +72,14 @@ public class MainTeleOp extends OpMode {
 
         r.drive.driveRobotCentric(x, y, finalRx);
 
-        // Endgame rumble at 2 minutes
+        // Endgame rumble
         if (getRuntime() >= 120 && !endgameRumbled) {
             gamepad1.rumble(2000);
             endgameRumbled = true;
         }
 
         // =========================================================
-        // SHOOTING LOGIC
+        // SHOOTING LOGIC - FASTER FOR CLOSE RANGE
         // =========================================================
         boolean highHeld = gamepad1.right_bumper;
         boolean lowHeld = gamepad1.left_bumper;
@@ -99,7 +100,10 @@ public class MainTeleOp extends OpMode {
             else r.shooter.spinLow();
 
             double currentVel = r.shooter.getVelocity();
-            boolean atSpeed = currentVel >= (currentTargetVel - VELOCITY_READY_THRESHOLD);
+
+            // DIFFERENT THRESHOLD FOR HIGH vs LOW
+            double velocityThreshold = highHeld ? HIGH_VELOCITY_THRESHOLD : LOW_VELOCITY_THRESHOLD;
+            boolean atSpeed = currentVel >= (currentTargetVel - velocityThreshold);
 
             switch (shootState) {
                 case WAIT_SPINUP:
@@ -107,22 +111,47 @@ public class MainTeleOp extends OpMode {
 
                     if (atSpeed) {
                         lastStableVelocity = currentVel;
-                        shootState = ShootState.FEEDING;
+                        feedTimer.reset();
+                        shootState = ShootState.PULSE_FEED;
                     }
                     break;
 
-                case FEEDING:
-                    r.intake.intake();
+                case PULSE_FEED:
+                    // SHORT PULSE
+                    if (feedTimer.milliseconds() < FEED_PULSE_MS) {
+                        r.intake.intake();
+                    } else {
+                        r.intake.stop();
+                        feedTimer.reset();
+                        shootState = ShootState.PULSE_PAUSE;
+                    }
 
-                    // Detect velocity drop (ball launched)
+                    // Check for ball launch
                     boolean velocityDropped = (lastStableVelocity - currentVel) > VELOCITY_DROP_THRESHOLD;
-
                     if (velocityDropped) {
                         r.intake.stop();
                         recoveryTimer.reset();
                         shootState = ShootState.WAIT_RECOVERY;
                     } else if (atSpeed) {
                         lastStableVelocity = currentVel;
+                    }
+                    break;
+
+                case PULSE_PAUSE:
+                    r.intake.stop();
+
+                    // Check for delayed detection
+                    boolean delayedDrop = (lastStableVelocity - currentVel) > VELOCITY_DROP_THRESHOLD;
+                    if (delayedDrop) {
+                        recoveryTimer.reset();
+                        shootState = ShootState.WAIT_RECOVERY;
+                    }
+                    // Pulse again if no ball
+                    else if (feedTimer.milliseconds() >= FEED_PAUSE_MS) {
+                        if (atSpeed) {
+                            feedTimer.reset();
+                            shootState = ShootState.PULSE_FEED;
+                        }
                     }
                     break;
 
@@ -133,7 +162,8 @@ public class MainTeleOp extends OpMode {
 
                     if (minTimeElapsed && atSpeed) {
                         lastStableVelocity = currentVel;
-                        shootState = ShootState.FEEDING;
+                        feedTimer.reset();
+                        shootState = ShootState.PULSE_FEED;
                     }
                     break;
             }
@@ -182,7 +212,6 @@ public class MainTeleOp extends OpMode {
             r.intake.stop();
             r.shooter.block();
 
-            // Reverse launcher (D-pad left)
             if (gamepad1.dpad_left) {
                 r.shooter.reverse();
             }
@@ -194,10 +223,18 @@ public class MainTeleOp extends OpMode {
         telemetry.addData("Shoot State", shootState);
         telemetry.addData("Velocity", "%.0f / %.0f", r.shooter.getVelocity(), currentTargetVel);
         telemetry.addData("Vel Drop", "%.0f", lastStableVelocity - r.shooter.getVelocity());
+        telemetry.addData("Feed Timer", "%.0f ms", feedTimer.milliseconds());
+        telemetry.addData("Recovery", "%.0f ms", recoveryTimer.milliseconds());
 
         telemetry.addLine("---");
         telemetry.addData("Blocker", shootHeld ? "OPEN" : "CLOSED");
-        telemetry.addData("Angle", shootHeld ? (highHeld ? "HIGH" : "LOW") : "IDLE");
+        if (shootHeld) {
+            String mode = highHeld ? "HIGH (1550)" : "LOW (1200 FAST)";
+            telemetry.addData("Mode", mode);
+            telemetry.addData("Angle", highHeld ? "0.65" : "0.70");
+        } else {
+            telemetry.addData("Mode", "IDLE");
+        }
 
         telemetry.addLine("Ciupa BOSS");
         telemetry.addLine("Cristi si Mario is si ei smecheri");

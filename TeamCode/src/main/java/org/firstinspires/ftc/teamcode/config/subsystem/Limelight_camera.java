@@ -7,15 +7,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 
 /**
- * Limelight Vision Subsystem (CAMERA VERSION)
- * Handles AprilTag detection, distance calculation, and targeting
+ * Limelight Vision Subsystem - CORRECTED Distance
  *
- * SETUP REQUIRED:
- * 1. Mount Limelight at a fixed angle on your robot
- * 2. Measure LIMELIGHT_HEIGHT_INCHES (lens center to floor)
- * 3. Measure LIMELIGHT_MOUNT_ANGLE_DEG (angle from horizontal)
- * 4. Measure TARGET_HEIGHT_INCHES (AprilTag center height)
- * 5. Configure AprilTag pipeline in Limelight web interface
+ * NEW Distance correction:
+ * Shows 36.5" but actual is 59.84" → Correction: 59.84/36.5 = 1.639
  */
 @Config
 public class Limelight_camera extends SubsystemBase {
@@ -23,31 +18,25 @@ public class Limelight_camera extends SubsystemBase {
     private final Limelight3A limelight;
     private LLResult latestResult = null;
 
-    // === PHYSICAL CONSTANTS - MEASURE ON YOUR ROBOT ===
+    // === PHYSICAL CONSTANTS ===
 
-    /**
-     * Height from floor to Limelight lens center (inches)
-     */
     public static double LIMELIGHT_HEIGHT_INCHES = 12.6;
-
-    /**
-     * Angle of Limelight mount from horizontal (degrees)
-     * Positive = angled UP, Negative = angled DOWN
-     */
     public static double LIMELIGHT_MOUNT_ANGLE_DEG = 15.0;
+    public static double TARGET_HEIGHT_INCHES = 29.53;
 
     /**
-     * Height of AprilTag center from floor (inches)
+     * DISTANCE CORRECTION FACTOR - UPDATED
+     *
+     * Your NEW measurements: Shows 36.5", actual is 59.84"
+     * Correction: 59.84 / 36.5 = 1.639
+     *
+     * TUNING: Adjust in FTC Dashboard if needed
      */
-    public static double TARGET_HEIGHT_INCHES = 29.53;
+    public static double DISTANCE_CORRECTION_FACTOR = 1.639;
 
     public Limelight_camera(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-
-        // Set to AprilTag pipeline
         limelight.pipelineSwitch(1);
-
-        // Start polling
         limelight.start();
     }
 
@@ -58,48 +47,33 @@ public class Limelight_camera extends SubsystemBase {
 
     // ========== TARGET DETECTION ==========
 
-    /**
-     * Check if Limelight sees a valid AprilTag
-     */
     public boolean hasTarget() {
         return latestResult != null && latestResult.isValid();
     }
 
     // ========== RAW TARGETING DATA ==========
 
-    /**
-     * Get horizontal offset (degrees)
-     * Negative = left, Positive = right
-     */
     public double getTx() {
         if (!hasTarget()) return 0.0;
         return latestResult.getTx();
     }
 
-    /**
-     * Get vertical offset (degrees)
-     */
     public double getTy() {
         if (!hasTarget()) return 0.0;
         return latestResult.getTy();
     }
 
-    /**
-     * Get target area (0-100% of image)
-     */
     public double getTa() {
         if (!hasTarget()) return 0.0;
         return latestResult.getTa();
     }
 
-    // ========== DISTANCE CALCULATION ==========
+    // ========== DISTANCE CALCULATION - WITH CORRECTION ==========
 
     /**
-     * Calculate distance to AprilTag using trigonometry
+     * Calculate distance to AprilTag with empirical correction
      *
-     * Formula: distance = (targetHeight - cameraHeight) / tan(mountAngle + ty)
-     *
-     * @return Distance in INCHES, or -1 if no target
+     * @return Corrected distance in INCHES, or -1 if no target
      */
     public double getDistanceToTarget() {
         if (!hasTarget()) return -1.0;
@@ -109,9 +83,26 @@ public class Limelight_camera extends SubsystemBase {
         double angleToTargetRad = Math.toRadians(angleToTargetDeg);
 
         double heightDifference = TARGET_HEIGHT_INCHES - LIMELIGHT_HEIGHT_INCHES;
-        double distance = heightDifference / Math.tan(angleToTargetRad);
+        double rawDistance = heightDifference / Math.tan(angleToTargetRad);
 
-        return distance;
+        // Apply empirical correction factor
+        double correctedDistance = rawDistance * DISTANCE_CORRECTION_FACTOR;
+
+        return correctedDistance;
+    }
+
+    /**
+     * Get RAW distance (before correction) for debugging
+     */
+    public double getRawDistance() {
+        if (!hasTarget()) return -1.0;
+
+        double ty = getTy();
+        double angleToTargetDeg = LIMELIGHT_MOUNT_ANGLE_DEG + ty;
+        double angleToTargetRad = Math.toRadians(angleToTargetDeg);
+
+        double heightDifference = TARGET_HEIGHT_INCHES - LIMELIGHT_HEIGHT_INCHES;
+        return heightDifference / Math.tan(angleToTargetRad);
     }
 
     /**
@@ -133,16 +124,10 @@ public class Limelight_camera extends SubsystemBase {
 
     // ========== ALIGNMENT HELPERS ==========
 
-    /**
-     * Check if aligned (TX near zero)
-     */
     public boolean isAligned(double tolerance) {
         return hasTarget() && Math.abs(getTx()) <= tolerance;
     }
 
-    /**
-     * Get rotation correction for PID
-     */
     public double getAlignmentError() {
         return getTx();
     }
