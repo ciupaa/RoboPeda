@@ -40,8 +40,8 @@ public class ShooterCalculator_camera {
     public static double[] ANGLES = {
             0.70,   // Close shot (109 cm)
             0.67,   // Mid-close (121 cm)
-            0.67,   // Medium (300 cm) - interpolated
-            0.64    // Far shot (669 cm)
+            0.66,   // Medium (300 cm) - interpolated
+            0.65    // Far shot (669 cm)
     };
 
     /**
@@ -52,8 +52,8 @@ public class ShooterCalculator_camera {
     public static double[] VELOCITIES = {
             1200,   // Close shot (109 cm) - INCREASED!
             1200,   // Mid-close (121 cm) - interpolated
-            1550,   // Medium (300 cm) - interpolated
-            1580    // Far shot (669 cm)
+            1530,   // Medium (300 cm) - interpolated
+            1570    // Far shot (669 cm)
     };
 
     // === FALLBACK VALUES ===
