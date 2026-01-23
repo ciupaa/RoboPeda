@@ -3,34 +3,35 @@ package org.firstinspires.ftc.teamcode.config.util;
 import com.acmerobotics.dashboard.config.Config;
 
 /**
- * ShooterCalculator_camera - TUNED with your working presets
+ * ShooterCalculator_camera - CENTIMETERS + INCREASED LEFT BUMPER VELOCITY
  *
- * Based on your MainTeleOp.java:
- * - Right Bumper (HIGH_PRESET): 0.65 angle, 1550 velocity = FAR shot
- * - Left Bumper (LOW_PRESET): 0.70 angle, 1200 velocity = CLOSE shot
+ * Based on your working presets:
+ * - Right Bumper: 0.65 angle, 1550 velocity = FAR shot
+ * - Left Bumper: 0.70 angle, 1400 velocity = CLOSE shot (INCREASED from 1200)
  *
- * Now you need to measure the ACTUAL DISTANCES these work at!
+ * ALL DISTANCES NOW IN CENTIMETERS!
  */
 @Config
 public class ShooterCalculator_camera {
 
-    // === LOOKUP TABLE - TUNE THESE BASED ON TESTING ===
+    // === LOOKUP TABLE - IN CENTIMETERS ===
 
     /**
-     * Test distances (inches) - MUST be ascending!
+     * Test distances (CM) - MUST be ascending!
      *
-     * TODO: Measure these with tape measure:
-     * 1. Stand at distance where LEFT BUMPER works perfectly
-     * 2. Measure that distance → Update DISTANCES[0]
-     * 3. Stand at distance where RIGHT BUMPER works perfectly
-     * 4. Measure that distance → Update DISTANCES[3]
-     * 5. Add 2 intermediate points
+     * Converted from inches to CM (1 inch = 2.54 cm):
+     * - 40" = 101.6 cm
+     * - 60" = 152.4 cm
+     * - 80" = 203.2 cm
+     * - 100" = 254.0 cm
+     *
+     * TODO: Measure actual distances in CM and update!
      */
     public static double[] DISTANCES = {
-            40.0,   // CLOSE: Where left bumper (0.70, 1200) works
-            60.0,   // MEDIUM CLOSE: Interpolate
-            80.0,   // MEDIUM FAR: Interpolate
-            100.0   // FAR: Where right bumper (0.65, 1550) works
+            100.0,   // CLOSE: Where left bumper (0.70, 1400) works
+            150.0,   // MEDIUM CLOSE: Interpolate
+            200.0,   // MEDIUM FAR: Interpolate
+            250.0    // FAR: Where right bumper (0.65, 1550) works
     };
 
     /**
@@ -46,14 +47,14 @@ public class ShooterCalculator_camera {
     };
 
     /**
-     * Motor velocities - Based on YOUR working values!
-     * 1200 = close (left bumper)
+     * Motor velocities - INCREASED FOR LEFT BUMPER!
+     * 1400 = close (left bumper - INCREASED from 1200 for more power!)
      * 1550 = far (right bumper)
      */
     public static double[] VELOCITIES = {
-            1200,   // Close shot (left bumper preset)
-            1283,   // Interpolated: 1200 + (1550-1200)/3
-            1433,   // Interpolated: 1200 + 2*(1550-1200)/3
+            1400,   // Close shot (left bumper preset) - INCREASED!
+            1450,   // Interpolated: 1400 + (1550-1400)/3
+            1500,   // Interpolated: 1400 + 2*(1550-1400)/3
             1550    // Far shot (right bumper preset)
     };
 
@@ -62,25 +63,25 @@ public class ShooterCalculator_camera {
     public static double DEFAULT_VELOCITY = 1550;
 
     /**
-     * Calculate shooter angle from distance
+     * Calculate shooter angle from distance (CM)
      */
-    public static double calculateAngle(double distance) {
-        if (distance < 0) return DEFAULT_ANGLE;
+    public static double calculateAngle(double distanceCm) {
+        if (distanceCm < 0) return DEFAULT_ANGLE;
 
-        if (distance <= DISTANCES[0]) {
+        if (distanceCm <= DISTANCES[0]) {
             return ANGLES[0];
         }
 
-        if (distance >= DISTANCES[DISTANCES.length - 1]) {
+        if (distanceCm >= DISTANCES[DISTANCES.length - 1]) {
             return ANGLES[ANGLES.length - 1];
         }
 
         for (int i = 0; i < DISTANCES.length - 1; i++) {
-            if (distance >= DISTANCES[i] && distance <= DISTANCES[i + 1]) {
+            if (distanceCm >= DISTANCES[i] && distanceCm <= DISTANCES[i + 1]) {
                 return interpolate(
                         DISTANCES[i], ANGLES[i],
                         DISTANCES[i + 1], ANGLES[i + 1],
-                        distance
+                        distanceCm
                 );
             }
         }
@@ -89,25 +90,25 @@ public class ShooterCalculator_camera {
     }
 
     /**
-     * Calculate shooter velocity from distance
+     * Calculate shooter velocity from distance (CM)
      */
-    public static double calculateVelocity(double distance) {
-        if (distance < 0) return DEFAULT_VELOCITY;
+    public static double calculateVelocity(double distanceCm) {
+        if (distanceCm < 0) return DEFAULT_VELOCITY;
 
-        if (distance <= DISTANCES[0]) {
+        if (distanceCm <= DISTANCES[0]) {
             return VELOCITIES[0];
         }
 
-        if (distance >= DISTANCES[DISTANCES.length - 1]) {
+        if (distanceCm >= DISTANCES[DISTANCES.length - 1]) {
             return VELOCITIES[VELOCITIES.length - 1];
         }
 
         for (int i = 0; i < DISTANCES.length - 1; i++) {
-            if (distance >= DISTANCES[i] && distance <= DISTANCES[i + 1]) {
+            if (distanceCm >= DISTANCES[i] && distanceCm <= DISTANCES[i + 1]) {
                 return interpolate(
                         DISTANCES[i], VELOCITIES[i],
                         DISTANCES[i + 1], VELOCITIES[i + 1],
-                        distance
+                        distanceCm
                 );
             }
         }
@@ -131,17 +132,17 @@ public class ShooterCalculator_camera {
         public final double velocity;
         public final double distance;
 
-        public ShooterConfig(double distance) {
-            this.distance = distance;
-            this.angle = calculateAngle(distance);
-            this.velocity = calculateVelocity(distance);
+        public ShooterConfig(double distanceCm) {
+            this.distance = distanceCm;
+            this.angle = calculateAngle(distanceCm);
+            this.velocity = calculateVelocity(distanceCm);
         }
     }
 
     /**
-     * Get complete config for distance
+     * Get complete config for distance (CM)
      */
-    public static ShooterConfig getConfig(double distance) {
-        return new ShooterConfig(distance);
+    public static ShooterConfig getConfig(double distanceCm) {
+        return new ShooterConfig(distanceCm);
     }
 }

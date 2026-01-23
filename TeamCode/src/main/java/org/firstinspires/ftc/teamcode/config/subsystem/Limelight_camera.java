@@ -7,10 +7,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 
 /**
- * Limelight Vision Subsystem - CORRECTED Distance
+ * Limelight Vision Subsystem - CENTIMETERS
  *
- * NEW Distance correction:
- * Shows 36.5" but actual is 59.84" → Correction: 59.84/36.5 = 1.639
+ * CORRECTED Distance calculation:
+ * Shows 135" in driver station but actual distance is 135cm
+ * Conversion: 135 inches * 2.54 = 342.9 cm (what it calculates)
+ * Actual: 135 cm
+ * Correction factor: 135 / 342.9 = 0.3937 (converts to CM)
  */
 @Config
 public class Limelight_camera extends SubsystemBase {
@@ -18,21 +21,25 @@ public class Limelight_camera extends SubsystemBase {
     private final Limelight3A limelight;
     private LLResult latestResult = null;
 
-    // === PHYSICAL CONSTANTS ===
+    // === PHYSICAL CONSTANTS - IN CENTIMETERS ===
 
-    public static double LIMELIGHT_HEIGHT_INCHES = 12.6;
+    public static double LIMELIGHT_HEIGHT_CM = 32.0;      // 12.6" = 32.0 cm
     public static double LIMELIGHT_MOUNT_ANGLE_DEG = 15.0;
-    public static double TARGET_HEIGHT_INCHES = 29.53;
+    public static double TARGET_HEIGHT_CM = 75.0;         // 29.53" = 75.0 cm
 
     /**
-     * DISTANCE CORRECTION FACTOR - UPDATED
+     * DISTANCE CORRECTION FACTOR - CONVERTS TO CM
      *
-     * Your NEW measurements: Shows 36.5", actual is 59.84"
-     * Correction: 59.84 / 36.5 = 1.639
+     * Driver station shows: 135 inches
+     * Actual distance: 135 cm
      *
-     * TUNING: Adjust in FTC Dashboard if needed
+     * Raw calculation gives inches, so we need to:
+     * 1. NOT multiply by 2.54 (that would give wrong CM)
+     * 2. Instead use correction: 135cm / (135in * 2.54) = 0.3937
+     *
+     * This directly converts the inch-based calculation to CM
      */
-    public static double DISTANCE_CORRECTION_FACTOR = 1.639;
+    public static double DISTANCE_CORRECTION_FACTOR = 0.3937;
 
     public Limelight_camera(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -68,12 +75,12 @@ public class Limelight_camera extends SubsystemBase {
         return latestResult.getTa();
     }
 
-    // ========== DISTANCE CALCULATION - WITH CORRECTION ==========
+    // ========== DISTANCE CALCULATION - IN CENTIMETERS ==========
 
     /**
-     * Calculate distance to AprilTag with empirical correction
+     * Calculate distance to AprilTag in CENTIMETERS
      *
-     * @return Corrected distance in INCHES, or -1 if no target
+     * @return Corrected distance in CM, or -1 if no target
      */
     public double getDistanceToTarget() {
         if (!hasTarget()) return -1.0;
@@ -82,10 +89,10 @@ public class Limelight_camera extends SubsystemBase {
         double angleToTargetDeg = LIMELIGHT_MOUNT_ANGLE_DEG + ty;
         double angleToTargetRad = Math.toRadians(angleToTargetDeg);
 
-        double heightDifference = TARGET_HEIGHT_INCHES - LIMELIGHT_HEIGHT_INCHES;
+        double heightDifference = TARGET_HEIGHT_CM - LIMELIGHT_HEIGHT_CM;
         double rawDistance = heightDifference / Math.tan(angleToTargetRad);
 
-        // Apply empirical correction factor
+        // Apply correction to convert to CM
         double correctedDistance = rawDistance * DISTANCE_CORRECTION_FACTOR;
 
         return correctedDistance;
@@ -101,25 +108,25 @@ public class Limelight_camera extends SubsystemBase {
         double angleToTargetDeg = LIMELIGHT_MOUNT_ANGLE_DEG + ty;
         double angleToTargetRad = Math.toRadians(angleToTargetDeg);
 
-        double heightDifference = TARGET_HEIGHT_INCHES - LIMELIGHT_HEIGHT_INCHES;
+        double heightDifference = TARGET_HEIGHT_CM - LIMELIGHT_HEIGHT_CM;
         return heightDifference / Math.tan(angleToTargetRad);
     }
 
     /**
-     * Get distance in feet
+     * Get distance in meters
      */
-    public double getDistanceToTargetFeet() {
-        double inches = getDistanceToTarget();
-        if (inches < 0) return -1.0;
-        return inches / 12.0;
+    public double getDistanceToTargetMeters() {
+        double cm = getDistanceToTarget();
+        if (cm < 0) return -1.0;
+        return cm / 100.0;
     }
 
     /**
-     * Check if in optimal shooting range
+     * Check if in optimal shooting range (CM)
      */
-    public boolean isInRange(double minDistance, double maxDistance) {
+    public boolean isInRange(double minDistanceCm, double maxDistanceCm) {
         double distance = getDistanceToTarget();
-        return distance > 0 && distance >= minDistance && distance <= maxDistance;
+        return distance > 0 && distance >= minDistanceCm && distance <= maxDistanceCm;
     }
 
     // ========== ALIGNMENT HELPERS ==========

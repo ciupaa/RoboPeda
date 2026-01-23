@@ -10,8 +10,10 @@ import org.firstinspires.ftc.teamcode.config.subsystem.Intake;
 import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
 
 /**
- * CAMERA TeleOp - FASTER CLOSE RANGE
- * Manual shot (left bumper) spins up faster!
+ * CAMERA TeleOp - CM UNITS + MORE POWER FOR LEFT BUMPER
+ *
+ * Manual shot (left bumper): 1400 velocity (increased from 1200)
+ * All distances displayed in CENTIMETERS
  */
 @TeleOp(name = "Main TeleOp Camera", group = "Competition")
 public class MainTeleOp_camera extends OpMode {
@@ -38,7 +40,7 @@ public class MainTeleOp_camera extends OpMode {
 
     // MANUAL SHOT PRESET (left bumper - CLOSE RANGE)
     private static final double MANUAL_ANGLE = 0.70;
-    private static final double MANUAL_VELOCITY = 1200;
+    private static final double MANUAL_VELOCITY = 1400;  // INCREASED from 1200!
     private static final double IDLE_PRESET = 1.0;
 
     // PULSE FEEDING STRATEGY
@@ -70,8 +72,8 @@ public class MainTeleOp_camera extends OpMode {
         pidTimer.reset();
 
         telemetry.addData("Status", "Initialized");
-        telemetry.addData("Mode", "FASTER Close Range");
-        telemetry.addLine("Right = AUTO, Left = MANUAL FAST");
+        telemetry.addData("Units", "CENTIMETERS");
+        telemetry.addLine("Right = AUTO, Left = MANUAL (1400 vel)");
     }
 
     @Override
@@ -136,7 +138,7 @@ public class MainTeleOp_camera extends OpMode {
         }
 
         // =========================================================
-        // SHOOTING - FASTER FOR MANUAL MODE
+        // SHOOTING - MORE POWER FOR MANUAL MODE
         // =========================================================
         boolean autoShot = gamepad1.right_bumper;
         boolean manualShot = gamepad1.left_bumper;
@@ -145,16 +147,16 @@ public class MainTeleOp_camera extends OpMode {
         if (shootHeld) {
             jamRumbled = false;
 
-            // AUTO: Use distance (slower to ensure accuracy)
+            // AUTO: Use distance (normal velocity)
             if (autoShot && r.limelight.hasTarget()) {
-                double distance = r.limelight.getDistanceToTarget();
+                double distanceCm = r.limelight.getDistanceToTarget();
                 ShooterCalculator_camera.ShooterConfig config =
-                        ShooterCalculator_camera.getConfig(distance);
+                        ShooterCalculator_camera.getConfig(distanceCm);
 
                 currentTargetAngle = config.angle;
                 currentTargetVel = config.velocity;
             }
-            // MANUAL: Fixed preset (FASTER spinup!)
+            // MANUAL: Fixed preset (MORE POWER - 1400!)
             else {
                 currentTargetAngle = MANUAL_ANGLE;
                 currentTargetVel = MANUAL_VELOCITY;
@@ -285,22 +287,22 @@ public class MainTeleOp_camera extends OpMode {
         }
 
         // =========================================================
-        // TELEMETRY
+        // TELEMETRY - IN CENTIMETERS
         // =========================================================
 
         telemetry.addData("Auto-Align", autoAlignActive ? "ACTIVE" : "Manual");
 
         if (r.limelight.hasTarget()) {
-            double distance = r.limelight.getDistanceToTarget();
+            double distanceCm = r.limelight.getDistanceToTarget();
 
-            telemetry.addData("Distance", "%.1f\" (%.1f ft)",
-                    distance, distance / 12.0);
+            telemetry.addData("Distance", "%.1f cm (%.2f m)",
+                    distanceCm, distanceCm / 100.0);
             telemetry.addData("TX", "%.1f deg", r.limelight.getTx());
             telemetry.addData("Aligned", r.limelight.isAligned(ALIGN_TOLERANCE) ? "YES" : "NO");
 
             if (autoShot) {
                 ShooterCalculator_camera.ShooterConfig config =
-                        ShooterCalculator_camera.getConfig(distance);
+                        ShooterCalculator_camera.getConfig(distanceCm);
                 telemetry.addData("Auto Angle", "%.2f", config.angle);
                 telemetry.addData("Auto Vel", "%.0f", config.velocity);
             }
@@ -310,9 +312,9 @@ public class MainTeleOp_camera extends OpMode {
 
         telemetry.addLine("---");
         if (autoShot) {
-            telemetry.addData("Mode", "AUTO (normal speed)");
+            telemetry.addData("Mode", "AUTO (normal)");
         } else if (manualShot) {
-            telemetry.addData("Mode", "MANUAL (FAST - 1200)");
+            telemetry.addData("Mode", "MANUAL (1400 vel)");
         } else {
             telemetry.addData("Mode", "IDLE");
         }
