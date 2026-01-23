@@ -10,13 +10,14 @@ import org.firstinspires.ftc.teamcode.config.subsystem.Intake;
 import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
 
 /**
- * CAMERA TeleOp - CM UNITS + MORE POWER FOR LEFT BUMPER
+ * RED ALLIANCE CAMERA TeleOp
  *
- * Manual shot (left bumper): 1400 velocity (increased from 1200)
- * All distances displayed in CENTIMETERS
+ * Auto-align rotates OPPOSITE direction (inverted for red alliance)
+ * Manual shot (left bumper): 1400 velocity
+ * All distances in CENTIMETERS
  */
-@TeleOp(name = "Main TeleOp Camera", group = "Competition")
-public class MainTeleOp_camera extends OpMode {
+@TeleOp(name = "MainTeleOp_Red", group = "Competition")
+public class MainTeleOp_Red_camera extends OpMode {
 
     private Robot_camera r;
     private final ElapsedTime recoveryTimer = new ElapsedTime();
@@ -40,7 +41,7 @@ public class MainTeleOp_camera extends OpMode {
 
     // MANUAL SHOT PRESET (left bumper - CLOSE RANGE)
     private static final double MANUAL_ANGLE = 0.70;
-    private static final double MANUAL_VELOCITY = 1400;  // INCREASED from 1200!
+    private static final double MANUAL_VELOCITY = 1400;
     private static final double IDLE_PRESET = 1.0;
 
     // PULSE FEEDING STRATEGY
@@ -50,8 +51,8 @@ public class MainTeleOp_camera extends OpMode {
     private static final double MIN_RECOVERY_TIME_MS = 400;
 
     // VELOCITY READY THRESHOLDS
-    private static final double AUTO_VELOCITY_THRESHOLD = 80;    // Auto mode (varies by distance)
-    private static final double MANUAL_VELOCITY_THRESHOLD = 120; // Manual close range (FASTER!)
+    private static final double AUTO_VELOCITY_THRESHOLD = 80;
+    private static final double MANUAL_VELOCITY_THRESHOLD = 120;
 
     private enum ShootState {
         WAIT_SPINUP,
@@ -67,13 +68,14 @@ public class MainTeleOp_camera extends OpMode {
 
     @Override
     public void init() {
-        r = new Robot_camera(hardwareMap, Alliance.BLUE);
+        r = new Robot_camera(hardwareMap, Alliance.RED);
         r.shooter.block();
         pidTimer.reset();
 
         telemetry.addData("Status", "Initialized");
+        telemetry.addData("Alliance", "RED");
         telemetry.addData("Units", "CENTIMETERS");
-        telemetry.addLine("Right = AUTO, Left = MANUAL (1400 vel)");
+        telemetry.addLine("Right = AUTO, Left = MANUAL (1400)");
     }
 
     @Override
@@ -81,7 +83,7 @@ public class MainTeleOp_camera extends OpMode {
         r.periodic();
 
         // =========================================================
-        // DRIVING WITH AUTO-ALIGN
+        // DRIVING WITH AUTO-ALIGN (RED - INVERTED)
         // =========================================================
         double y = gamepad1.left_stick_y;
         double x = gamepad1.left_stick_x;
@@ -91,7 +93,7 @@ public class MainTeleOp_camera extends OpMode {
         double finalRx;
 
         if (autoAlignActive && r.limelight.hasTarget()) {
-            // SMOOTH PID
+            // RED ALLIANCE: INVERTED alignment (opposite rotation)
             double tx = r.limelight.getTx();
             double dt = pidTimer.seconds();
             pidTimer.reset();
@@ -110,7 +112,9 @@ public class MainTeleOp_camera extends OpMode {
             }
 
             alignPower = Math.max(-ALIGN_MAX_POWER, Math.min(ALIGN_MAX_POWER, alignPower));
-            finalRx = -alignPower;
+
+            // RED: INVERTED direction (+ instead of -)
+            finalRx = alignPower;  // ← INVERTED FOR RED!
 
             lastAlignError = error;
 
@@ -138,7 +142,7 @@ public class MainTeleOp_camera extends OpMode {
         }
 
         // =========================================================
-        // SHOOTING - MORE POWER FOR MANUAL MODE
+        // SHOOTING (same as Blue)
         // =========================================================
         boolean autoShot = gamepad1.right_bumper;
         boolean manualShot = gamepad1.left_bumper;
@@ -147,7 +151,7 @@ public class MainTeleOp_camera extends OpMode {
         if (shootHeld) {
             jamRumbled = false;
 
-            // AUTO: Use distance (normal velocity)
+            // AUTO: Use distance
             if (autoShot && r.limelight.hasTarget()) {
                 double distanceCm = r.limelight.getDistanceToTarget();
                 ShooterCalculator_camera.ShooterConfig config =
@@ -156,29 +160,23 @@ public class MainTeleOp_camera extends OpMode {
                 currentTargetAngle = config.angle;
                 currentTargetVel = config.velocity;
             }
-            // MANUAL: Fixed preset (MORE POWER - 1400!)
+            // MANUAL: Fixed preset
             else {
                 currentTargetAngle = MANUAL_ANGLE;
                 currentTargetVel = MANUAL_VELOCITY;
             }
 
-            // Set servos
             r.shooter.setAngle(currentTargetAngle);
             r.shooter.unblock();
-
-            // Spin launcher
             r.shooter.launcher.setVelocity(currentTargetVel);
 
             double currentVel = r.shooter.getVelocity();
-
-            // DIFFERENT THRESHOLD: Manual is faster!
             double velocityThreshold = manualShot ? MANUAL_VELOCITY_THRESHOLD : AUTO_VELOCITY_THRESHOLD;
             boolean atSpeed = currentVel >= (currentTargetVel - velocityThreshold);
 
             switch (shootState) {
                 case WAIT_SPINUP:
                     r.intake.stop();
-
                     if (atSpeed) {
                         lastStableVelocity = currentVel;
                         feedTimer.reset();
@@ -187,7 +185,6 @@ public class MainTeleOp_camera extends OpMode {
                     break;
 
                 case PULSE_FEED:
-                    // SHORT PULSE
                     if (feedTimer.milliseconds() < FEED_PULSE_MS) {
                         r.intake.intake();
                     } else {
@@ -196,7 +193,6 @@ public class MainTeleOp_camera extends OpMode {
                         shootState = ShootState.PULSE_PAUSE;
                     }
 
-                    // Check for ball launch
                     boolean velocityDropped = (lastStableVelocity - currentVel) > VELOCITY_DROP_THRESHOLD;
                     if (velocityDropped) {
                         r.intake.stop();
@@ -209,15 +205,11 @@ public class MainTeleOp_camera extends OpMode {
 
                 case PULSE_PAUSE:
                     r.intake.stop();
-
-                    // Check for delayed detection
                     boolean delayedDrop = (lastStableVelocity - currentVel) > VELOCITY_DROP_THRESHOLD;
                     if (delayedDrop) {
                         recoveryTimer.reset();
                         shootState = ShootState.WAIT_RECOVERY;
-                    }
-                    // Pulse again if no ball
-                    else if (feedTimer.milliseconds() >= FEED_PAUSE_MS) {
+                    } else if (feedTimer.milliseconds() >= FEED_PAUSE_MS) {
                         if (atSpeed) {
                             feedTimer.reset();
                             shootState = ShootState.PULSE_FEED;
@@ -227,9 +219,7 @@ public class MainTeleOp_camera extends OpMode {
 
                 case WAIT_RECOVERY:
                     r.intake.stop();
-
                     boolean minTimeElapsed = recoveryTimer.milliseconds() >= MIN_RECOVERY_TIME_MS;
-
                     if (minTimeElapsed && atSpeed) {
                         lastStableVelocity = currentVel;
                         feedTimer.reset();
@@ -242,7 +232,6 @@ public class MainTeleOp_camera extends OpMode {
         // INTAKE (X)
         else if (gamepad1.x) {
             shootState = ShootState.WAIT_SPINUP;
-
             r.shooter.setAngle(IDLE_PRESET);
             r.shooter.stop();
             r.shooter.block();
@@ -264,7 +253,6 @@ public class MainTeleOp_camera extends OpMode {
         else if (gamepad1.y) {
             shootState = ShootState.WAIT_SPINUP;
             jamRumbled = false;
-
             r.shooter.setAngle(IDLE_PRESET);
             r.intake.outtakeSlow();
             r.shooter.stop();
@@ -275,7 +263,6 @@ public class MainTeleOp_camera extends OpMode {
         else {
             shootState = ShootState.WAIT_SPINUP;
             jamRumbled = false;
-
             r.shooter.setAngle(IDLE_PRESET);
             r.shooter.stop();
             r.intake.stop();
@@ -287,22 +274,28 @@ public class MainTeleOp_camera extends OpMode {
         }
 
         // =========================================================
-        // TELEMETRY - IN CENTIMETERS
+        // TELEMETRY
         // =========================================================
 
+        telemetry.addData("Alliance", "RED");
         telemetry.addData("Auto-Align", autoAlignActive ? "ACTIVE" : "Manual");
 
         if (r.limelight.hasTarget()) {
-            double distanceCm = r.limelight.getDistanceToTarget();
+            double rawDist = r.limelight.getRawDistance();
+            double correctedDist = r.limelight.getDistanceToTarget();
 
-            telemetry.addData("Distance", "%.1f cm (%.2f m)",
-                    distanceCm, distanceCm / 100.0);
+            telemetry.addLine("=== CALIBRATION ===");
+            telemetry.addData("RAW", "%.1f cm", rawDist);
+            telemetry.addData("CORRECTED", "%.1f cm", correctedDist);
+            telemetry.addData("Factor", "%.3f", r.limelight.DISTANCE_CORRECTION_FACTOR);
+            telemetry.addLine("---");
+
             telemetry.addData("TX", "%.1f deg", r.limelight.getTx());
             telemetry.addData("Aligned", r.limelight.isAligned(ALIGN_TOLERANCE) ? "YES" : "NO");
 
             if (autoShot) {
                 ShooterCalculator_camera.ShooterConfig config =
-                        ShooterCalculator_camera.getConfig(distanceCm);
+                        ShooterCalculator_camera.getConfig(correctedDist);
                 telemetry.addData("Auto Angle", "%.2f", config.angle);
                 telemetry.addData("Auto Vel", "%.0f", config.velocity);
             }
@@ -312,20 +305,16 @@ public class MainTeleOp_camera extends OpMode {
 
         telemetry.addLine("---");
         if (autoShot) {
-            telemetry.addData("Mode", "AUTO (normal)");
+            telemetry.addData("Mode", "AUTO");
         } else if (manualShot) {
-            telemetry.addData("Mode", "MANUAL (1400 vel)");
+            telemetry.addData("Mode", "MANUAL (1400)");
         } else {
             telemetry.addData("Mode", "IDLE");
         }
         telemetry.addData("State", shootState);
         telemetry.addData("Vel", "%.0f / %.0f", r.shooter.getVelocity(), currentTargetVel);
-        telemetry.addData("Feed Timer", "%.0f ms", feedTimer.milliseconds());
-        telemetry.addData("Recovery", "%.0f ms", recoveryTimer.milliseconds());
 
         telemetry.addLine("Ciupa BOSS");
-        telemetry.addLine("Cristi si Mario is si ei smecheri");
-
         telemetry.update();
     }
 }

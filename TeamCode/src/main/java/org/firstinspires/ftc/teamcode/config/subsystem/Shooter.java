@@ -19,14 +19,14 @@ public class Shooter extends SubsystemBase {
     public static double P = 800;
     public static double I = 0;
     public static double D = 0;
-    public static double F = 13;
+    public static double F = 25;
 
     public static double TARGET_VELOCITY = 1550;
 
     // --- POSITIONS ---
     // 0.85 = Closed (Default)
     // 0.24 = Open (Shooting)
-    public double blockPos = 0.87;
+    public double blockPos = 0.89;
     public double unblockPos = 0.24;
 
     public Shooter(HardwareMap hardwareMap) {

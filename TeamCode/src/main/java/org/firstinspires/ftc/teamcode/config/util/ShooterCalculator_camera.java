@@ -3,35 +3,33 @@ package org.firstinspires.ftc.teamcode.config.util;
 import com.acmerobotics.dashboard.config.Config;
 
 /**
- * ShooterCalculator_camera - CENTIMETERS + INCREASED LEFT BUMPER VELOCITY
+ * ShooterCalculator_camera - REAL CALIBRATED DISTANCES
  *
- * Based on your working presets:
- * - Right Bumper: 0.65 angle, 1550 velocity = FAR shot
- * - Left Bumper: 0.70 angle, 1400 velocity = CLOSE shot (INCREASED from 1200)
+ * Based on your actual shooting positions:
+ * - CLOSE: 109 cm → 0.70 angle, 1400 velocity
+ * - MID: 121 cm → 0.68 angle, 1475 velocity
+ * - FAR: 669 cm → 0.65 angle, 1550 velocity
  *
- * ALL DISTANCES NOW IN CENTIMETERS!
+ * ALL DISTANCES IN CENTIMETERS!
  */
 @Config
 public class ShooterCalculator_camera {
 
-    // === LOOKUP TABLE - IN CENTIMETERS ===
+    // === LOOKUP TABLE - REAL DISTANCES ===
 
     /**
-     * Test distances (CM) - MUST be ascending!
+     * Your actual shooting distances (CM) - MUST be ascending!
      *
-     * Converted from inches to CM (1 inch = 2.54 cm):
-     * - 40" = 101.6 cm
-     * - 60" = 152.4 cm
-     * - 80" = 203.2 cm
-     * - 100" = 254.0 cm
-     *
-     * TODO: Measure actual distances in CM and update!
+     * Measured from testing:
+     * - 109 cm: Close shot (left bumper preset)
+     * - 121 cm: Mid-close shot (needs slight right rotation)
+     * - 669 cm: Far shot (right bumper preset)
      */
     public static double[] DISTANCES = {
-            100.0,   // CLOSE: Where left bumper (0.70, 1400) works
-            150.0,   // MEDIUM CLOSE: Interpolate
-            200.0,   // MEDIUM FAR: Interpolate
-            250.0    // FAR: Where right bumper (0.65, 1550) works
+            109.0,   // CLOSE: Left bumper position
+            121.0,   // MID: Mid-close (rotate right)
+            300.0,   // MEDIUM: Interpolated
+            669.0    // FAR: Right bumper position
     };
 
     /**
@@ -40,10 +38,10 @@ public class ShooterCalculator_camera {
      * 0.65 = far (right bumper)
      */
     public static double[] ANGLES = {
-            0.70,   // Close shot (left bumper preset)
-            0.68,   // Interpolated
-            0.66,   // Interpolated
-            0.65    // Far shot (right bumper preset)
+            0.70,   // Close shot (109 cm)
+            0.67,   // Mid-close (121 cm)
+            0.67,   // Medium (300 cm) - interpolated
+            0.64    // Far shot (669 cm)
     };
 
     /**
@@ -52,15 +50,15 @@ public class ShooterCalculator_camera {
      * 1550 = far (right bumper)
      */
     public static double[] VELOCITIES = {
-            1400,   // Close shot (left bumper preset) - INCREASED!
-            1450,   // Interpolated: 1400 + (1550-1400)/3
-            1500,   // Interpolated: 1400 + 2*(1550-1400)/3
-            1550    // Far shot (right bumper preset)
+            1200,   // Close shot (109 cm) - INCREASED!
+            1200,   // Mid-close (121 cm) - interpolated
+            1550,   // Medium (300 cm) - interpolated
+            1580    // Far shot (669 cm)
     };
 
     // === FALLBACK VALUES ===
-    public static double DEFAULT_ANGLE = 0.65;
-    public static double DEFAULT_VELOCITY = 1550;
+    public static double DEFAULT_ANGLE = 0.7;
+    public static double DEFAULT_VELOCITY = 1200;
 
     /**
      * Calculate shooter angle from distance (CM)

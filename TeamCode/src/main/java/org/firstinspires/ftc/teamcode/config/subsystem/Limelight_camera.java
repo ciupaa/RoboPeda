@@ -7,13 +7,14 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 
 /**
- * Limelight Vision Subsystem - CENTIMETERS
+ * Limelight Vision Subsystem - CENTIMETERS (CALIBRATED)
  *
- * CORRECTED Distance calculation:
- * Shows 135" in driver station but actual distance is 135cm
- * Conversion: 135 inches * 2.54 = 342.9 cm (what it calculates)
- * Actual: 135 cm
- * Correction factor: 135 / 342.9 = 0.3937 (converts to CM)
+ * CALIBRATION DATA (from real testing):
+ * Real distance: 121 cm
+ * Raw distance: 169 cm
+ * Correction factor: 121 / 169 = 0.716
+ *
+ * IMPORTANT: Tune DISTANCE_CORRECTION_FACTOR in FTC Dashboard if needed!
  */
 @Config
 public class Limelight_camera extends SubsystemBase {
@@ -23,23 +24,25 @@ public class Limelight_camera extends SubsystemBase {
 
     // === PHYSICAL CONSTANTS - IN CENTIMETERS ===
 
-    public static double LIMELIGHT_HEIGHT_CM = 32.0;      // 12.6" = 32.0 cm
-    public static double LIMELIGHT_MOUNT_ANGLE_DEG = 15.0;
-    public static double TARGET_HEIGHT_CM = 75.0;         // 29.53" = 75.0 cm
+    public static double LIMELIGHT_HEIGHT_CM = 32.0;      // Height of camera from ground
+    public static double LIMELIGHT_MOUNT_ANGLE_DEG = 15.0; // Angle camera is tilted up
+    public static double TARGET_HEIGHT_CM = 75.0;          // Height of AprilTag from ground
 
     /**
-     * DISTANCE CORRECTION FACTOR - CONVERTS TO CM
+     * DISTANCE CORRECTION FACTOR - CALIBRATED!
      *
-     * Driver station shows: 135 inches
-     * Actual distance: 135 cm
+     * Based on real testing:
+     * Real: 121 cm, Raw: 169 cm
+     * Correction: 121 / 169 = 0.716
      *
-     * Raw calculation gives inches, so we need to:
-     * 1. NOT multiply by 2.54 (that would give wrong CM)
-     * 2. Instead use correction: 135cm / (135in * 2.54) = 0.3937
-     *
-     * This directly converts the inch-based calculation to CM
+     * HOW TO CALIBRATE:
+     * 1. Stand at exact distance with tape (e.g., 100 cm, 150 cm, 200 cm)
+     * 2. Check "RAW" distance in telemetry
+     * 3. Correction = Real_Distance / RAW_Distance
+     * 4. Update this value in FTC Dashboard
+     * 5. Test at multiple distances and average
      */
-    public static double DISTANCE_CORRECTION_FACTOR = 0.3937;
+    public static double DISTANCE_CORRECTION_FACTOR = 0.716;
 
     public Limelight_camera(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -92,7 +95,7 @@ public class Limelight_camera extends SubsystemBase {
         double heightDifference = TARGET_HEIGHT_CM - LIMELIGHT_HEIGHT_CM;
         double rawDistance = heightDifference / Math.tan(angleToTargetRad);
 
-        // Apply correction to convert to CM
+        // Apply correction factor to get actual CM
         double correctedDistance = rawDistance * DISTANCE_CORRECTION_FACTOR;
 
         return correctedDistance;
@@ -100,6 +103,7 @@ public class Limelight_camera extends SubsystemBase {
 
     /**
      * Get RAW distance (before correction) for debugging
+     * This shows what the trigonometry calculates without correction
      */
     public double getRawDistance() {
         if (!hasTarget()) return -1.0;
