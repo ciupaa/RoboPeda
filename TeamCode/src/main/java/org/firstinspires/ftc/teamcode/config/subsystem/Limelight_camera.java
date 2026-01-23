@@ -28,24 +28,24 @@ public class Limelight_camera extends SubsystemBase {
     /**
      * Height from floor to Limelight lens center (inches)
      */
-    public static double LIMELIGHT_HEIGHT_INCHES = 20.0;
+    public static double LIMELIGHT_HEIGHT_INCHES = 12.6;
 
     /**
      * Angle of Limelight mount from horizontal (degrees)
      * Positive = angled UP, Negative = angled DOWN
      */
-    public static double LIMELIGHT_MOUNT_ANGLE_DEG = 25.0;
+    public static double LIMELIGHT_MOUNT_ANGLE_DEG = 15.0;
 
     /**
      * Height of AprilTag center from floor (inches)
      */
-    public static double TARGET_HEIGHT_INCHES = 48.0;
+    public static double TARGET_HEIGHT_INCHES = 29.53;
 
     public Limelight_camera(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         // Set to AprilTag pipeline
-        limelight.pipelineSwitch(0);
+        limelight.pipelineSwitch(1);
 
         // Start polling
         limelight.start();
