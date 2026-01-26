@@ -49,17 +49,10 @@ public class Constants {
             .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(13)
-            // distanta dreapta sau stanga la centrul de grautate al robotului,
-            // adica la ce INCH e distantata roata de centrul robotului, nu trebuie masurata distanta
-            // la centru ci doar pana pe axa centrului
-            .strafePodX(13)
-            // distanta de unde se afla roata pana la centrul robotului, adica daca roata e in fata,
-            // cati INCH is de la ea pana la centru ( fata/spate)
-            // noi am masurat prost, pt ca am luat la ambele roti cati CM, dar trebuie INCH si trebuie doar la roata de strafe sa masuram
-            // distanta pana la centru, la roata de fata spate e distanta pana sa fie pe linie cu centrul, nu in centru
+            .forwardPodY(1.18110236)
+            .strafePodX(5.11811024)
 
-            .distanceUnit(DistanceUnit.CM)
+            .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
