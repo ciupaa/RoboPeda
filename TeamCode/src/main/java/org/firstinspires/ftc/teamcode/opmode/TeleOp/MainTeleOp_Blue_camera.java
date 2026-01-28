@@ -85,8 +85,8 @@ public class MainTeleOp_Blue_camera extends OpMode {
         // =========================================================
         // DRIVING WITH AUTO-ALIGN (BLUE - STANDARD)
         // =========================================================
-        double y = gamepad1.left_stick_y;
-        double x = gamepad1.left_stick_x;
+        double y = -gamepad1.left_stick_y;
+        double x = -gamepad1.left_stick_x;
 
         boolean autoAlignActive = gamepad1.left_trigger > 0.5 && gamepad1.right_trigger > 0.5;
 

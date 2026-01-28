@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
  * Manual shot (left bumper): 1400 velocity
  * All distances in CENTIMETERS
  */
-@TeleOp(name = "MainTeleOp_Red", group = "Competition")
+@TeleOp(name = "MainTeleOp_Red_camera", group = "Competition")
 public class MainTeleOp_Red_camera extends OpMode {
 
     private Robot_camera r;
@@ -85,8 +85,8 @@ public class MainTeleOp_Red_camera extends OpMode {
         // =========================================================
         // DRIVING WITH AUTO-ALIGN (RED - INVERTED)
         // =========================================================
-        double y = gamepad1.left_stick_y;
-        double x = gamepad1.left_stick_x;
+        double y = -gamepad1.left_stick_y;
+        double x = -gamepad1.left_stick_x;
 
         boolean autoAlignActive = gamepad1.left_trigger > 0.5 && gamepad1.right_trigger > 0.5;
 
