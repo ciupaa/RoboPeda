@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmode.TeleOp;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -14,9 +15,11 @@ import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
  * BLUE ALLIANCE CAMERA TeleOp - PIPELINE 1
  *
  * STARTING HEADING: Always 0° (wherever robot faces at start)
- * TARGET HEADING: -130° (from starting position)
- * TRIGGERS: Rotate to -130° from start (DEAD CENTER)
+ * TARGET HEADING: Configurable via Dashboard (default -130°)
+ * TRIGGERS: Rotate to target heading (DEAD CENTER)
+ * OPTIONS: Reset heading to 0°
  */
+@Configurable
 @TeleOp(name = "MainTeleOp_Blue_camera", group = "Competition")
 public class MainTeleOp_Blue_camera extends OpMode {
 
@@ -25,15 +28,15 @@ public class MainTeleOp_Blue_camera extends OpMode {
     private final ElapsedTime feedTimer = new ElapsedTime();
 
     // HEADING PID - TIGHTENED FOR DEAD CENTER ACCURACY
-    private static final double HEADING_kP = 0.020;
-    private static final double HEADING_kD = 0.005;
-    private static final double HEADING_MIN_POWER = 0.04;
-    private static final double HEADING_MAX_POWER = 0.35;
-    private static final double HEADING_TOLERANCE = 0.5;
-    private static final double HEADING_DEADBAND = 0.3;
+    public static double HEADING_kP = 0.020;
+    public static double HEADING_kD = 0.005;
+    public static double HEADING_MIN_POWER = 0.04;
+    public static double HEADING_MAX_POWER = 0.35;
+    public static double HEADING_TOLERANCE = 0.5;
+    public static double HEADING_DEADBAND = 0.3;
 
-    // BLUE: Target -130° from starting position (0°)
-    private static final double BLUE_TARGET_HEADING = -130.0;
+    // BLUE: Target heading - CONFIGURABLE FROM DASHBOARD
+    public static double BLUE_TARGET_HEADING = -130.0;
 
     // Heading alignment state
     private double lastHeadingError = 0.0;
@@ -43,6 +46,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
     private boolean endgameRumbled = false;
     private boolean jamRumbled = false;
     private boolean alignedRumbled = false;
+    private boolean headingResetRumbled = false;
 
     // MANUAL SHOT PRESET
     private static final double MANUAL_ANGLE = 0.70;
@@ -86,12 +90,30 @@ public class MainTeleOp_Blue_camera extends OpMode {
         telemetry.addData("Starting Heading", "0°");
         telemetry.addData("Target Heading", "%.0f°", BLUE_TARGET_HEADING);
         telemetry.addData("Tolerance", "±%.1f°", HEADING_TOLERANCE);
-        telemetry.addLine("Triggers = Rotate to -130° (DEAD CENTER)");
+        telemetry.addLine("---");
+        telemetry.addLine("Triggers = Auto-Align to Target");
+        telemetry.addLine("OPTIONS = Reset Heading to 0°");
+        telemetry.update();
     }
 
     @Override
     public void loop() {
         r.periodic();
+
+        // =========================================================
+        // HEADING RESET (OPTIONS BUTTON)
+        // =========================================================
+        if (gamepad1.options) {
+            Pose current = r.f.getPose();
+            r.f.setStartingPose(new Pose(current.getX(), current.getY(), 0));
+
+            if (!headingResetRumbled) {
+                gamepad1.rumble(200);
+                headingResetRumbled = true;
+            }
+        } else {
+            headingResetRumbled = false;
+        }
 
         // =========================================================
         // DRIVING
@@ -290,10 +312,15 @@ public class MainTeleOp_Blue_camera extends OpMode {
         double headingError = normalizeAngle(BLUE_TARGET_HEADING - currentHeadingDeg);
 
         telemetry.addLine("=== BLUE (PIPELINE 1) ===");
-        telemetry.addData("Current", "%.2f°", currentHeadingDeg);
-        telemetry.addData("Target", "%.2f°", BLUE_TARGET_HEADING);
-        telemetry.addData("Error", "%.2f°", headingError);
-        telemetry.addData("Align", autoAlignActive ? "ACTIVE" : "Manual");
+        telemetry.addData("Current Heading", "%.2f°", currentHeadingDeg);
+        telemetry.addData("Target Heading", "%.2f°", BLUE_TARGET_HEADING);
+
+        if (!autoAlignActive) {
+            telemetry.addData("Preview Error", "%.2f° (press triggers)", headingError);
+        } else {
+            telemetry.addData("Align Error", "%.2f°", headingError);
+            telemetry.addData("Align Status", autoAlignActive ? "ACTIVE" : "Manual");
+        }
 
         if (Math.abs(headingError) < HEADING_TOLERANCE) {
             telemetry.addData("✓", "ALIGNED (±%.1f°)", HEADING_TOLERANCE);
@@ -329,9 +356,10 @@ public class MainTeleOp_Blue_camera extends OpMode {
         telemetry.addData("State", shootState);
         telemetry.addData("Vel", "%.0f / %.0f", r.shooter.getVelocity(), currentTargetVel);
 
-        telemetry.addLine("Ciupa BOSS");
-        telemetry.addLine("Cristi si Mario is si ei smecheri");
+        telemetry.addLine("");
+        telemetry.addData("OPTIONS Button", "Reset Heading");
 
+        telemetry.addLine("Ciupa BOSS");
         telemetry.update();
     }
 
