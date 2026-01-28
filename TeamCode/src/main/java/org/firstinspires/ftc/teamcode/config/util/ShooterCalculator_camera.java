@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.config.util;
 
-import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.util.Range;
 
 /**
@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.util.Range;
  * Velocity: y = -0.00299656x^2 + 3.01616x + 893.4823
  * Angle:    y = -(2.27572 * 10^-8)x^3 + 0.0000248578x^2 - 0.00731359x + 1.23132
  */
-@Config
+@Configurable
 public class ShooterCalculator_camera {
 
     /**

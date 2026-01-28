@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.config.subsystem;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -16,7 +17,7 @@ import com.seattlesolvers.solverslib.command.SubsystemBase;
  *
  * IMPORTANT: Tune DISTANCE_CORRECTION_FACTOR in FTC Dashboard if needed!
  */
-@Config
+@Configurable
 public class Limelight_camera extends SubsystemBase {
 
     private final Limelight3A limelight;
