@@ -8,14 +8,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 
 /**
- * Limelight Vision Subsystem - CENTIMETERS (CALIBRATED)
+ * Limelight Vision Subsystem - RAW DISTANCE (CENTIMETERS)
  *
- * CALIBRATION DATA (from real testing):
- * Real distance: 121 cm
- * Raw distance: 169 cm
- * Correction factor: 121 / 169 = 0.716
- *
- * IMPORTANT: Tune DISTANCE_CORRECTION_FACTOR in FTC Dashboard if needed!
+ * Uses pure trigonometric distance calculation - NO CORRECTION FACTOR.
+ * Make sure these values are PRECISELY measured:
+ * - Camera height from ground to lens center
+ * - Camera tilt angle (use protractor or level app)
+ * - AprilTag height from ground to tag center
  */
 @Configurable
 public class Limelight_camera extends SubsystemBase {
@@ -30,24 +29,13 @@ public class Limelight_camera extends SubsystemBase {
     public static double TARGET_HEIGHT_CM = 75.0;          // Height of AprilTag from ground
 
     /**
-     * DISTANCE CORRECTION FACTOR - CALIBRATED!
-     *
-     * Based on real testing:
-     * Real: 121 cm, Raw: 169 cm
-     * Correction: 121 / 169 = 0.716
-     *
-     * HOW TO CALIBRATE:
-     * 1. Stand at exact distance with tape (e.g., 100 cm, 150 cm, 200 cm)
-     * 2. Check "RAW" distance in telemetry
-     * 3. Correction = Real_Distance / RAW_Distance
-     * 4. Update this value in FTC Dashboard
-     * 5. Test at multiple distances and average
+     * Constructor with pipeline selection
+     * @param hardwareMap Hardware map
+     * @param pipeline Pipeline number (1 for Blue, 2 for Red, etc.)
      */
-    public static double DISTANCE_CORRECTION_FACTOR = 0.716;
-
-    public Limelight_camera(HardwareMap hardwareMap) {
+    public Limelight_camera(HardwareMap hardwareMap, int pipeline) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(1);
+        limelight.pipelineSwitch(pipeline);
         limelight.start();
     }
 
@@ -79,12 +67,14 @@ public class Limelight_camera extends SubsystemBase {
         return latestResult.getTa();
     }
 
-    // ========== DISTANCE CALCULATION - IN CENTIMETERS ==========
+    // ========== DISTANCE CALCULATION - RAW (NO CORRECTION) ==========
 
     /**
-     * Calculate distance to AprilTag in CENTIMETERS
+     * Calculate distance to AprilTag in CENTIMETERS using trigonometry
      *
-     * @return Corrected distance in CM, or -1 if no target
+     * Formula: distance = (targetHeight - cameraHeight) / tan(cameraAngle + ty)
+     *
+     * @return Distance in CM, or -1 if no target
      */
     public double getDistanceToTarget() {
         if (!hasTarget()) return -1.0;
@@ -94,27 +84,9 @@ public class Limelight_camera extends SubsystemBase {
         double angleToTargetRad = Math.toRadians(angleToTargetDeg);
 
         double heightDifference = TARGET_HEIGHT_CM - LIMELIGHT_HEIGHT_CM;
-        double rawDistance = heightDifference / Math.tan(angleToTargetRad);
+        double distance = heightDifference / Math.tan(angleToTargetRad);
 
-        // Apply correction factor to get actual CM
-        double correctedDistance = rawDistance * DISTANCE_CORRECTION_FACTOR;
-
-        return correctedDistance;
-    }
-
-    /**
-     * Get RAW distance (before correction) for debugging
-     * This shows what the trigonometry calculates without correction
-     */
-    public double getRawDistance() {
-        if (!hasTarget()) return -1.0;
-
-        double ty = getTy();
-        double angleToTargetDeg = LIMELIGHT_MOUNT_ANGLE_DEG + ty;
-        double angleToTargetRad = Math.toRadians(angleToTargetDeg);
-
-        double heightDifference = TARGET_HEIGHT_CM - LIMELIGHT_HEIGHT_CM;
-        return heightDifference / Math.tan(angleToTargetRad);
+        return distance;
     }
 
     /**

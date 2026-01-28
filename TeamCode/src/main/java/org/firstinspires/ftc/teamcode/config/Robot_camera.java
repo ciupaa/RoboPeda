@@ -14,6 +14,10 @@ import java.util.List;
 /**
  * Robot Configuration WITH Limelight
  * Use this for camera-based TeleOps
+ *
+ * Pipeline Selection:
+ * - Blue Alliance: Pipeline 1
+ * - Red Alliance: Pipeline 2
  */
 public class Robot_camera {
     public final MecanumDrive drive;
@@ -23,11 +27,20 @@ public class Robot_camera {
     public final Follower f;
     private final List<LynxModule> allHubs;
 
+    /**
+     * Constructor with pipeline selection
+     * @param hardwareMap Hardware map
+     * @param alliance Alliance color (determines pipeline)
+     */
     public Robot_camera(HardwareMap hardwareMap, Alliance alliance) {
         drive = new MecanumDrive(hardwareMap);
         shooter = new Shooter(hardwareMap);
         intake = new Intake(hardwareMap);
-        limelight = new Limelight_camera(hardwareMap);
+
+        // Select pipeline based on alliance
+        int pipeline = (alliance == Alliance.BLUE) ? 1 : 2;
+        limelight = new Limelight_camera(hardwareMap, pipeline);
+
         f = Constants.createFollower(hardwareMap);
 
         allHubs = hardwareMap.getAll(LynxModule.class);

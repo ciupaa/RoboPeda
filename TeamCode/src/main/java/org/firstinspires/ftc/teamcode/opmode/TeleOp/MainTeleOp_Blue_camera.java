@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.config.subsystem.Intake;
 import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
 
 /**
- * BLUE ALLIANCE CAMERA TeleOp
+ * BLUE ALLIANCE CAMERA TeleOp - PIPELINE 1
  *
  * STARTING HEADING: Always 0° (wherever robot faces at start)
  * TARGET HEADING: -130° (from starting position)
@@ -25,12 +25,12 @@ public class MainTeleOp_Blue_camera extends OpMode {
     private final ElapsedTime feedTimer = new ElapsedTime();
 
     // HEADING PID - TIGHTENED FOR DEAD CENTER ACCURACY
-    private static final double HEADING_kP = 0.020;          // Increased for stronger correction
-    private static final double HEADING_kD = 0.005;          // Increased to dampen oscillation
-    private static final double HEADING_MIN_POWER = 0.04;    // Lower minimum for fine adjustments
-    private static final double HEADING_MAX_POWER = 0.35;    // Slightly higher for faster approach
-    private static final double HEADING_TOLERANCE = 0.5;     // Much tighter - stops within ±0.5°
-    private static final double HEADING_DEADBAND = 0.3;      // Much tighter - keeps correcting until ±0.3°
+    private static final double HEADING_kP = 0.020;
+    private static final double HEADING_kD = 0.005;
+    private static final double HEADING_MIN_POWER = 0.04;
+    private static final double HEADING_MAX_POWER = 0.35;
+    private static final double HEADING_TOLERANCE = 0.5;
+    private static final double HEADING_DEADBAND = 0.3;
 
     // BLUE: Target -130° from starting position (0°)
     private static final double BLUE_TARGET_HEADING = -130.0;
@@ -73,7 +73,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
 
     @Override
     public void init() {
-        r = new Robot_camera(hardwareMap, Alliance.BLUE);
+        r = new Robot_camera(hardwareMap, Alliance.BLUE); // Pipeline 1
         r.shooter.block();
         headingPidTimer.reset();
 
@@ -82,6 +82,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
 
         telemetry.addData("Status", "Initialized");
         telemetry.addData("Alliance", "BLUE");
+        telemetry.addData("Pipeline", "1");
         telemetry.addData("Starting Heading", "0°");
         telemetry.addData("Target Heading", "%.0f°", BLUE_TARGET_HEADING);
         telemetry.addData("Tolerance", "±%.1f°", HEADING_TOLERANCE);
@@ -288,7 +289,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
         double currentHeadingDeg = Math.toDegrees(r.f.getPose().getHeading());
         double headingError = normalizeAngle(BLUE_TARGET_HEADING - currentHeadingDeg);
 
-        telemetry.addLine("=== BLUE (DEAD CENTER) ===");
+        telemetry.addLine("=== BLUE (PIPELINE 1) ===");
         telemetry.addData("Current", "%.2f°", currentHeadingDeg);
         telemetry.addData("Target", "%.2f°", BLUE_TARGET_HEADING);
         telemetry.addData("Error", "%.2f°", headingError);
@@ -300,12 +301,16 @@ public class MainTeleOp_Blue_camera extends OpMode {
 
         telemetry.addLine("");
         if (r.limelight.hasTarget()) {
-            double correctedDist = r.limelight.getDistanceToTarget();
-            telemetry.addData("Distance", "%.1f cm", correctedDist);
+            double distance = r.limelight.getDistanceToTarget();
+
+            telemetry.addLine("=== LIMELIGHT ===");
+            telemetry.addData("Distance", "%.1f cm", distance);
+            telemetry.addData("TX", "%.1f°", r.limelight.getTx());
+            telemetry.addData("TY", "%.1f°", r.limelight.getTy());
 
             if (autoShot) {
                 ShooterCalculator_camera.ShooterConfig config =
-                        ShooterCalculator_camera.getConfig(correctedDist);
+                        ShooterCalculator_camera.getConfig(distance);
                 telemetry.addData("Auto Angle", "%.2f", config.angle);
                 telemetry.addData("Auto Vel", "%.0f", config.velocity);
             }
@@ -325,6 +330,8 @@ public class MainTeleOp_Blue_camera extends OpMode {
         telemetry.addData("Vel", "%.0f / %.0f", r.shooter.getVelocity(), currentTargetVel);
 
         telemetry.addLine("Ciupa BOSS");
+        telemetry.addLine("Cristi si Mario is si ei smecheri");
+
         telemetry.update();
     }
 
