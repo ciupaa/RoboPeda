@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmode.TeleOp;
 
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -12,9 +13,9 @@ import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
 /**
  * BLUE ALLIANCE CAMERA TeleOp
  *
- * Auto-align rotates to align with target (standard direction)
- * Manual shot (left bumper): 1400 velocity
- * All distances in CENTIMETERS
+ * STARTING HEADING: Always 0° (wherever robot faces at start)
+ * TARGET HEADING: -130° (from starting position)
+ * TRIGGERS: Rotate to -130° from start
  */
 @TeleOp(name = "MainTeleOp_Blue_camera", group = "Competition")
 public class MainTeleOp_Blue_camera extends OpMode {
@@ -23,34 +24,38 @@ public class MainTeleOp_Blue_camera extends OpMode {
     private final ElapsedTime recoveryTimer = new ElapsedTime();
     private final ElapsedTime feedTimer = new ElapsedTime();
 
-    // AUTO-ALIGN PID
-    private static final double ALIGN_kP = 0.018;
-    private static final double ALIGN_kD = 0.004;
-    private static final double ALIGN_MIN_POWER = 0.10;
-    private static final double ALIGN_MAX_POWER = 0.45;
-    private static final double ALIGN_TOLERANCE = 1.0;
+    // HEADING PID
+    private static final double HEADING_kP = 0.015;
+    private static final double HEADING_kD = 0.003;
+    private static final double HEADING_MIN_POWER = 0.06;
+    private static final double HEADING_MAX_POWER = 0.30;
+    private static final double HEADING_TOLERANCE = 2.5;
+    private static final double HEADING_DEADBAND = 1.5;
 
-    // PID state
-    private double lastAlignError = 0;
-    private final ElapsedTime pidTimer = new ElapsedTime();
+    // BLUE: Target -130° from starting position (0°)
+    private static final double BLUE_TARGET_HEADING = -130.0;
+
+    // Heading alignment state
+    private double lastHeadingError = 0.0;
+    private final ElapsedTime headingPidTimer = new ElapsedTime();
 
     // RUMBLE FLAGS
     private boolean endgameRumbled = false;
     private boolean jamRumbled = false;
     private boolean alignedRumbled = false;
 
-    // MANUAL SHOT PRESET (left bumper - CLOSE RANGE)
+    // MANUAL SHOT PRESET
     private static final double MANUAL_ANGLE = 0.70;
     private static final double MANUAL_VELOCITY = 1400;
     private static final double IDLE_PRESET = 1.0;
 
-    // PULSE FEEDING STRATEGY
+    // PULSE FEEDING
     private static final double FEED_PULSE_MS = 120;
     private static final double FEED_PAUSE_MS = 100;
     private static final double VELOCITY_DROP_THRESHOLD = 150;
     private static final double MIN_RECOVERY_TIME_MS = 400;
 
-    // VELOCITY READY THRESHOLDS
+    // VELOCITY THRESHOLDS
     private static final double AUTO_VELOCITY_THRESHOLD = 80;
     private static final double MANUAL_VELOCITY_THRESHOLD = 120;
 
@@ -70,12 +75,16 @@ public class MainTeleOp_Blue_camera extends OpMode {
     public void init() {
         r = new Robot_camera(hardwareMap, Alliance.BLUE);
         r.shooter.block();
-        pidTimer.reset();
+        headingPidTimer.reset();
+
+        // ALWAYS START AT 0° - wherever the robot is facing
+        r.f.setStartingPose(new Pose(0, 0, 0));
 
         telemetry.addData("Status", "Initialized");
         telemetry.addData("Alliance", "BLUE");
-        telemetry.addData("Units", "CENTIMETERS");
-        telemetry.addLine("Right = AUTO, Left = MANUAL (1400)");
+        telemetry.addData("Starting Heading", "0°");
+        telemetry.addData("Target Heading", "%.0f°", BLUE_TARGET_HEADING);
+        telemetry.addLine("Triggers = Rotate to -130°");
     }
 
     @Override
@@ -83,7 +92,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
         r.periodic();
 
         // =========================================================
-        // DRIVING WITH AUTO-ALIGN (BLUE - STANDARD)
+        // DRIVING
         // =========================================================
         double y = -gamepad1.left_stick_y;
         double x = -gamepad1.left_stick_x;
@@ -92,33 +101,40 @@ public class MainTeleOp_Blue_camera extends OpMode {
 
         double finalRx;
 
-        if (autoAlignActive && r.limelight.hasTarget()) {
-            // BLUE ALLIANCE: Standard alignment (no inversion)
-            double tx = r.limelight.getTx();
-            double dt = pidTimer.seconds();
-            pidTimer.reset();
+        if (autoAlignActive) {
+            double currentHeadingRad = r.f.getPose().getHeading();
+            double currentHeadingDeg = Math.toDegrees(currentHeadingRad);
 
-            double error = tx;
-            double derivative = (error - lastAlignError) / dt;
+            double error = normalizeAngle(BLUE_TARGET_HEADING - currentHeadingDeg);
 
-            double alignPower = (ALIGN_kP * error) + (ALIGN_kD * derivative);
+            double dt = headingPidTimer.seconds();
+            headingPidTimer.reset();
+            if (dt < 0.001) dt = 0.001;
 
-            if (Math.abs(alignPower) > 0.01) {
+            if (Math.abs(error) < HEADING_DEADBAND) {
+                error = 0;
+            }
+
+            double derivative = (error - lastHeadingError) / dt;
+
+            double alignPower = (HEADING_kP * error) + (HEADING_kD * derivative);
+
+            if (Math.abs(error) > HEADING_DEADBAND) {
                 if (alignPower > 0) {
-                    alignPower = Math.max(alignPower, ALIGN_MIN_POWER);
-                } else {
-                    alignPower = Math.min(alignPower, -ALIGN_MIN_POWER);
+                    alignPower = Math.max(alignPower, HEADING_MIN_POWER);
+                } else if (alignPower < 0) {
+                    alignPower = Math.min(alignPower, -HEADING_MIN_POWER);
                 }
             }
 
-            alignPower = Math.max(-ALIGN_MAX_POWER, Math.min(ALIGN_MAX_POWER, alignPower));
+            alignPower = Math.max(-HEADING_MAX_POWER, Math.min(HEADING_MAX_POWER, alignPower));
 
-            // BLUE: Standard direction
+            // FIX: Invert the rotation power
             finalRx = -alignPower;
 
-            lastAlignError = error;
+            lastHeadingError = error;
 
-            if (Math.abs(tx) < ALIGN_TOLERANCE) {
+            if (Math.abs(error) < HEADING_TOLERANCE) {
                 if (!alignedRumbled) {
                     gamepad1.rumble(100);
                     alignedRumbled = true;
@@ -128,14 +144,14 @@ public class MainTeleOp_Blue_camera extends OpMode {
             }
 
         } else {
-            finalRx = -gamepad1.right_stick_x;
-            lastAlignError = 0;
+            finalRx = gamepad1.right_stick_x;
+            lastHeadingError = 0;
             alignedRumbled = false;
+            headingPidTimer.reset();
         }
 
         r.drive.driveRobotCentric(x, y, finalRx);
 
-        // Endgame rumble
         if (getRuntime() >= 120 && !endgameRumbled) {
             gamepad1.rumble(2000);
             endgameRumbled = true;
@@ -151,7 +167,6 @@ public class MainTeleOp_Blue_camera extends OpMode {
         if (shootHeld) {
             jamRumbled = false;
 
-            // AUTO: Use distance
             if (autoShot && r.limelight.hasTarget()) {
                 double distanceCm = r.limelight.getDistanceToTarget();
                 ShooterCalculator_camera.ShooterConfig config =
@@ -159,9 +174,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
 
                 currentTargetAngle = config.angle;
                 currentTargetVel = config.velocity;
-            }
-            // MANUAL: Fixed preset
-            else {
+            } else {
                 currentTargetAngle = MANUAL_ANGLE;
                 currentTargetVel = MANUAL_VELOCITY;
             }
@@ -229,7 +242,6 @@ public class MainTeleOp_Blue_camera extends OpMode {
             }
         }
 
-        // INTAKE (X)
         else if (gamepad1.x) {
             shootState = ShootState.WAIT_SPINUP;
             r.shooter.setAngle(IDLE_PRESET);
@@ -249,7 +261,6 @@ public class MainTeleOp_Blue_camera extends OpMode {
             }
         }
 
-        // OUTTAKE (Y)
         else if (gamepad1.y) {
             shootState = ShootState.WAIT_SPINUP;
             jamRumbled = false;
@@ -259,7 +270,6 @@ public class MainTeleOp_Blue_camera extends OpMode {
             r.shooter.block();
         }
 
-        // IDLE
         else {
             shootState = ShootState.WAIT_SPINUP;
             jamRumbled = false;
@@ -267,31 +277,29 @@ public class MainTeleOp_Blue_camera extends OpMode {
             r.shooter.stop();
             r.intake.stop();
             r.shooter.block();
-
-            if (gamepad1.dpad_left) {
-                r.shooter.reverse();
-            }
         }
 
         // =========================================================
         // TELEMETRY
         // =========================================================
 
-        telemetry.addData("Alliance", "BLUE");
-        telemetry.addData("Auto-Align", autoAlignActive ? "ACTIVE" : "Manual");
+        double currentHeadingDeg = Math.toDegrees(r.f.getPose().getHeading());
+        double headingError = normalizeAngle(BLUE_TARGET_HEADING - currentHeadingDeg);
 
+        telemetry.addLine("=== BLUE (0° START) ===");
+        telemetry.addData("Current", "%.1f°", currentHeadingDeg);
+        telemetry.addData("Target", "%.1f°", BLUE_TARGET_HEADING);
+        telemetry.addData("Error", "%.1f°", headingError);
+        telemetry.addData("Align", autoAlignActive ? "ACTIVE" : "Manual");
+
+        if (Math.abs(headingError) < HEADING_TOLERANCE) {
+            telemetry.addData("✓", "ALIGNED");
+        }
+
+        telemetry.addLine("");
         if (r.limelight.hasTarget()) {
-            double rawDist = r.limelight.getRawDistance();
             double correctedDist = r.limelight.getDistanceToTarget();
-
-            telemetry.addLine("=== CALIBRATION ===");
-            telemetry.addData("RAW", "%.1f cm", rawDist);
-            telemetry.addData("CORRECTED", "%.1f cm", correctedDist);
-            telemetry.addData("Factor", "%.3f", r.limelight.DISTANCE_CORRECTION_FACTOR);
-            telemetry.addLine("---");
-
-            telemetry.addData("TX", "%.1f deg", r.limelight.getTx());
-            telemetry.addData("Aligned", r.limelight.isAligned(ALIGN_TOLERANCE) ? "YES" : "NO");
+            telemetry.addData("Distance", "%.1f cm", correctedDist);
 
             if (autoShot) {
                 ShooterCalculator_camera.ShooterConfig config =
@@ -300,14 +308,14 @@ public class MainTeleOp_Blue_camera extends OpMode {
                 telemetry.addData("Auto Vel", "%.0f", config.velocity);
             }
         } else {
-            telemetry.addData("Limelight", "No Target");
+            telemetry.addData("Camera", "No Target");
         }
 
-        telemetry.addLine("---");
+        telemetry.addLine("");
         if (autoShot) {
             telemetry.addData("Mode", "AUTO");
         } else if (manualShot) {
-            telemetry.addData("Mode", "MANUAL (1400)");
+            telemetry.addData("Mode", "MANUAL");
         } else {
             telemetry.addData("Mode", "IDLE");
         }
@@ -316,5 +324,11 @@ public class MainTeleOp_Blue_camera extends OpMode {
 
         telemetry.addLine("Ciupa BOSS");
         telemetry.update();
+    }
+
+    private double normalizeAngle(double angleDegrees) {
+        while (angleDegrees > 180) angleDegrees -= 360;
+        while (angleDegrees < -180) angleDegrees += 360;
+        return angleDegrees;
     }
 }
