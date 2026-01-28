@@ -49,7 +49,7 @@ public class RealAuto extends OpModeCommand {
 
                         ),
                         new ShootCommand(r.shooter, r.intake, false, 0.65),
-                        new WaitCommand(5000),
+                        //new WaitCommand(5000),
 
                         new ParallelCommandGroup(
                                 new IntakeCommand(r.intake, false),
@@ -65,7 +65,7 @@ public class RealAuto extends OpModeCommand {
                                 new InstantAction(() -> r.shooter.setAngle(0.65))
                         ),
                         new ShootCommand(r.shooter, r.intake, false, 0.65),
-                        new WaitCommand(5000),
+                        //new WaitCommand(5000),
 
 
                         new ParallelCommandGroup(
@@ -81,8 +81,8 @@ public class RealAuto extends OpModeCommand {
                                 new FollowPath(r, p.paths.Shoot2),
                                 new InstantAction(() -> r.shooter.setAngle(0.65))
                         ),
-                        new ShootCommand(r.shooter, r.intake, false, 0.65),
-                        new WaitCommand(5000)
+                        new ShootCommand(r.shooter, r.intake, false, 0.65)
+                        //new WaitCommand(5000)
                 )
         );
     }
