@@ -2,13 +2,18 @@ package org.firstinspires.ftc.teamcode.opmode.auto;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.seattlesolvers.solverslib.command.CommandBase;
+import com.seattlesolvers.solverslib.command.InstantCommand;
+import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
 
 import org.firstinspires.ftc.teamcode.config.Robot;
 import org.firstinspires.ftc.teamcode.config.commands.FollowPath;
+import org.firstinspires.ftc.teamcode.config.commands.IntakeCommand;
 import org.firstinspires.ftc.teamcode.config.commands.ShootCommand;
-import org.firstinspires.ftc.teamcode.config.paths.AutoPaths;
+import org.firstinspires.ftc.teamcode.config.paths.Blue_close;
+import org.firstinspires.ftc.teamcode.config.paths.Blue_close;
+import org.firstinspires.ftc.teamcode.config.subsystem.Intake;
 import org.firstinspires.ftc.teamcode.config.util.Alliance;
 import org.firstinspires.ftc.teamcode.config.util.OpModeCommand;
 
@@ -28,7 +33,7 @@ public class RealAuto extends OpModeCommand {
         r = new Robot(hardwareMap, Alliance.BLUE);
 
         // 2. Load the Path Map
-        AutoPaths p = new AutoPaths(r);
+        Blue_close p = new Blue_close(r);
 
         // 3. Tell Pedro Pathing where we start
         r.f.setStartingPose(p.startPose);
@@ -37,36 +42,47 @@ public class RealAuto extends OpModeCommand {
         schedule(
                 new SequentialCommandGroup(
 
-                        // STEP 1: PREP
-                        // Lock shooter to safe angle
-                        new InstantAction(() -> r.shooter.setAngle(1.0)),
-                        new WaitCommand(500),
+                        new ParallelCommandGroup(
+                                new InstantAction(() -> r.shooter.setAngle(0.65)),
+                                new FollowPath(r, p.paths.Shootpreload),
+                                new InstantAction(() -> r.shooter.unblock())
 
-                        // STEP 2: DRIVE PATH 1
-                        // Accessing the path from the nested 'paths' class
-                        new FollowPath(r, p.paths.Path1),
+                        ),
+                        new ShootCommand(r.shooter, r.intake, false, 0.65),
+                        new WaitCommand(5000),
 
-                        // STEP 3: SHOOT
-                        // High Goal, Angle 0.65
-                        new ShootCommand(r.shooter, r.intake, true, 0.65),
+                        new ParallelCommandGroup(
+                                new IntakeCommand(r.intake, false),
+                                new InstantAction(() -> r.shooter.block()),
+                                new FollowPath(r, p.paths.GoTo1)
 
-                        // STEP 4: DRIVE PATH 3
-                        new FollowPath(r, p.paths.Path3),
+                                ),
+                        new FollowPath(r, p.paths.Intake1),
 
-                        // STEP 5: INTAKE SEQUENCE
-                        // Drop nozzle -> Start Motor -> Wait 1.5s -> Stop
-                        new InstantAction(() -> r.shooter.setAngle(1.0)),
-                        new InstantAction(() -> r.intake.intake()),
-                        new WaitCommand(1500),
-                        new InstantAction(() -> r.intake.stop()),
+                        new ParallelCommandGroup(
+                                new InstantAction(() -> r.intake.stop()),
+                                new FollowPath(r, p.paths.Shoot1),
+                                new InstantAction(() -> r.shooter.setAngle(0.65))
+                        ),
+                        new ShootCommand(r.shooter, r.intake, false, 0.65),
+                        new WaitCommand(5000),
 
-                        // STEP 6: DRIVE PATH 2 (Return)
-                        new FollowPath(r, p.paths.Path2),
 
-                        // STEP 7: SCORE
-                        new InstantAction(() -> r.intake.outtakeSlow()),
-                        new WaitCommand(1000),
-                        new InstantAction(() -> r.intake.stop())
+                        new ParallelCommandGroup(
+                                new FollowPath(r, p.paths.GoTo2),
+                                new IntakeCommand(r.intake, false),
+                                new InstantAction(() -> r.shooter.block())
+                        ),
+
+                        new FollowPath(r, p.paths.Intake2),
+
+                        new ParallelCommandGroup(
+                                new InstantAction(() -> r.intake.stop()),
+                                new FollowPath(r, p.paths.Shoot2),
+                                new InstantAction(() -> r.shooter.setAngle(0.65))
+                        ),
+                        new ShootCommand(r.shooter, r.intake, false, 0.65),
+                        new WaitCommand(5000)
                 )
         );
     }
