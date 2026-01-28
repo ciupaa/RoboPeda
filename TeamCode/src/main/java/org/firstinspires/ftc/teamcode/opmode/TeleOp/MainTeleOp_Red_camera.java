@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
  *
  * STARTING HEADING: Always 0° (wherever robot faces at start)
  * TARGET HEADING: +130° (from starting position)
- * TRIGGERS: Rotate to +130° from start
+ * TRIGGERS: Rotate to +130° from start (DEAD CENTER)
  */
 @TeleOp(name = "MainTeleOp_Red_camera", group = "Competition")
 public class MainTeleOp_Red_camera extends OpMode {
@@ -24,13 +24,13 @@ public class MainTeleOp_Red_camera extends OpMode {
     private final ElapsedTime recoveryTimer = new ElapsedTime();
     private final ElapsedTime feedTimer = new ElapsedTime();
 
-    // HEADING PID
-    private static final double HEADING_kP = 0.015;
-    private static final double HEADING_kD = 0.003;
-    private static final double HEADING_MIN_POWER = 0.06;
-    private static final double HEADING_MAX_POWER = 0.30;
-    private static final double HEADING_TOLERANCE = 2.5;
-    private static final double HEADING_DEADBAND = 1.5;
+    // HEADING PID - TIGHTENED FOR DEAD CENTER ACCURACY
+    private static final double HEADING_kP = 0.020;          // Increased for stronger correction
+    private static final double HEADING_kD = 0.005;          // Increased to dampen oscillation
+    private static final double HEADING_MIN_POWER = 0.04;    // Lower minimum for fine adjustments
+    private static final double HEADING_MAX_POWER = 0.35;    // Slightly higher for faster approach
+    private static final double HEADING_TOLERANCE = 0.5;     // Much tighter - stops within ±0.5°
+    private static final double HEADING_DEADBAND = 0.3;      // Much tighter - keeps correcting until ±0.3°
 
     // RED: Target +130° from starting position (0°)
     private static final double RED_TARGET_HEADING = 130.0;
@@ -84,7 +84,8 @@ public class MainTeleOp_Red_camera extends OpMode {
         telemetry.addData("Alliance", "RED");
         telemetry.addData("Starting Heading", "0°");
         telemetry.addData("Target Heading", "%.0f°", RED_TARGET_HEADING);
-        telemetry.addLine("Triggers = Rotate to +130°");
+        telemetry.addData("Tolerance", "±%.1f°", HEADING_TOLERANCE);
+        telemetry.addLine("Triggers = Rotate to +130° (DEAD CENTER)");
     }
 
     @Override
@@ -111,6 +112,7 @@ public class MainTeleOp_Red_camera extends OpMode {
             headingPidTimer.reset();
             if (dt < 0.001) dt = 0.001;
 
+            // Apply deadband
             if (Math.abs(error) < HEADING_DEADBAND) {
                 error = 0;
             }
@@ -119,6 +121,7 @@ public class MainTeleOp_Red_camera extends OpMode {
 
             double alignPower = (HEADING_kP * error) + (HEADING_kD * derivative);
 
+            // Apply minimum power only outside deadband
             if (Math.abs(error) > HEADING_DEADBAND) {
                 if (alignPower > 0) {
                     alignPower = Math.max(alignPower, HEADING_MIN_POWER);
@@ -129,7 +132,6 @@ public class MainTeleOp_Red_camera extends OpMode {
 
             alignPower = Math.max(-HEADING_MAX_POWER, Math.min(HEADING_MAX_POWER, alignPower));
 
-            // FIX: Invert the rotation power
             finalRx = -alignPower;
 
             lastHeadingError = error;
@@ -286,14 +288,14 @@ public class MainTeleOp_Red_camera extends OpMode {
         double currentHeadingDeg = Math.toDegrees(r.f.getPose().getHeading());
         double headingError = normalizeAngle(RED_TARGET_HEADING - currentHeadingDeg);
 
-        telemetry.addLine("=== RED (0° START) ===");
-        telemetry.addData("Current", "%.1f°", currentHeadingDeg);
-        telemetry.addData("Target", "%.1f°", RED_TARGET_HEADING);
-        telemetry.addData("Error", "%.1f°", headingError);
+        telemetry.addLine("=== RED (DEAD CENTER) ===");
+        telemetry.addData("Current", "%.2f°", currentHeadingDeg);
+        telemetry.addData("Target", "%.2f°", RED_TARGET_HEADING);
+        telemetry.addData("Error", "%.2f°", headingError);
         telemetry.addData("Align", autoAlignActive ? "ACTIVE" : "Manual");
 
         if (Math.abs(headingError) < HEADING_TOLERANCE) {
-            telemetry.addData("✓", "ALIGNED");
+            telemetry.addData("✓", "ALIGNED (±%.1f°)", HEADING_TOLERANCE);
         }
 
         telemetry.addLine("");
