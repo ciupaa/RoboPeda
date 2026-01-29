@@ -8,10 +8,10 @@ import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
 
 import org.firstinspires.ftc.teamcode.config.Robot;
+import org.firstinspires.ftc.teamcode.config.commands.ContinuousIntakeCommand;
 import org.firstinspires.ftc.teamcode.config.commands.FollowPath;
 import org.firstinspires.ftc.teamcode.config.commands.IntakeCommand;
 import org.firstinspires.ftc.teamcode.config.commands.ShootCommand;
-import org.firstinspires.ftc.teamcode.config.paths.Blue_close;
 import org.firstinspires.ftc.teamcode.config.paths.Blue_close;
 import org.firstinspires.ftc.teamcode.config.subsystem.Intake;
 import org.firstinspires.ftc.teamcode.config.util.Alliance;
@@ -22,14 +22,14 @@ import org.firstinspires.ftc.teamcode.config.util.OpModeCommand;
  * PURPOSE: The "Director" of the Autonomous period.
  * It queues up actions in a specific order: Drive -> Shoot -> Drive -> Intake.
  */
-@Autonomous(name = "FULL SYSTEM TEST", group = "Competition")
-public class RealAuto extends OpModeCommand {
+@Autonomous(name = "Blue_Close", group = "Competition")
+public class Blue_Close extends OpModeCommand {
 
     Robot r;
 
     @Override
     public void initialize() {
-        // 1. Initialize Robot Hardwarerr
+        // 1. Initialize Robot Hardware
         r = new Robot(hardwareMap, Alliance.BLUE);
 
         // 2. Load the Path Map
@@ -42,47 +42,60 @@ public class RealAuto extends OpModeCommand {
         schedule(
                 new SequentialCommandGroup(
 
+                        // STEP 1: Move to shooting position + prep shooter
                         new ParallelCommandGroup(
                                 new InstantAction(() -> r.shooter.setAngle(0.65)),
                                 new FollowPath(r, p.paths.Shootpreload),
                                 new InstantAction(() -> r.shooter.unblock())
-
                         ),
-                        //new ShootCommand(r.shooter, r.intake, false, 0.65),
-                        //new WaitCommand(5000),
 
+                        // STEP 2: Shoot preload
+                        new ShootCommand(r.shooter, r.intake, false, 0.65),
+
+                        // STEP 3: Move to first sample WHILE intaking
+                        // The intake will automatically stop when GoTo1 path finishes
                         new ParallelCommandGroup(
-                                //new IntakeCommand(r.intake, false),
+                                new ContinuousIntakeCommand(r.intake, false), // ← Runs until path ends
                                 new InstantAction(() -> r.shooter.block()),
                                 new FollowPath(r, p.paths.GoTo1)
+                        ),
 
-                                ),
-                        new FollowPath(r, p.paths.Intake1),
-
+                        // STEP 4: Continue intaking during final approach
                         new ParallelCommandGroup(
-                                //new InstantAction(() -> r.intake.stop()),
+                                new ContinuousIntakeCommand(r.intake, false), // ← Runs until path ends
+                                new FollowPath(r, p.paths.Intake1)
+                        ),
+
+                        // STEP 5: Return to shooting position + prep shooter
+                        new ParallelCommandGroup(
                                 new FollowPath(r, p.paths.Shoot1),
                                 new InstantAction(() -> r.shooter.setAngle(0.65))
                         ),
-                        //new ShootCommand(r.shooter, r.intake, false, 0.65),
-                        //new WaitCommand(5000),
 
+                        // STEP 6: Shoot first sample
+                        new ShootCommand(r.shooter, r.intake, false, 0.65),
 
+                        // STEP 7: Move to second sample WHILE intaking
                         new ParallelCommandGroup(
+                                new ContinuousIntakeCommand(r.intake, false), // ← Runs until path ends
                                 new FollowPath(r, p.paths.GoTo2),
-                                //new IntakeCommand(r.intake, false),
                                 new InstantAction(() -> r.shooter.block())
                         ),
 
-                        new FollowPath(r, p.paths.Intake2),
-
+                        // STEP 8: Continue intaking during final approach
                         new ParallelCommandGroup(
-                               // new InstantAction(() -> r.intake.stop()),
+                                new ContinuousIntakeCommand(r.intake, false), // ← Runs until path ends
+                                new FollowPath(r, p.paths.Intake2)
+                        ),
+
+                        // STEP 9: Return to shooting position + prep shooter
+                        new ParallelCommandGroup(
                                 new FollowPath(r, p.paths.Shoot2),
                                 new InstantAction(() -> r.shooter.setAngle(0.65))
-                        )
-                       // new ShootCommand(r.shooter, r.intake, false, 0.65)
-                        //new WaitCommand(5000)
+                        ),
+
+                        // STEP 10: Shoot second sample
+                        new ShootCommand(r.shooter, r.intake, false, 0.65)
                 )
         );
     }
