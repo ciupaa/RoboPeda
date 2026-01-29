@@ -7,27 +7,38 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 
 import org.firstinspires.ftc.teamcode.config.Robot;
+import org.firstinspires.ftc.teamcode.config.Robot_camera;
 
 /**
- * FILE: Blue_close.java
- * PURPOSE: Stores the specific coordinates and curves for Autonomous.
- * NOTE: The 'Paths' class inside is structured to match the output of the Path Generator website.
+ * FILE: Blue_close_path.java
+ * PURPOSE: Blue Alliance Close Position - Paths
+ *
+ * Path Names (Updated Terminology):
+ * - Shootpreload: Drive to goal to shoot preload artifact
+ * - GoTo1: Drive toward artifact 1
+ * - Intake1: Final approach to artifact 1
+ * - Shoot1: Return to goal to shoot artifact 1
+ * - GoTo2: Drive toward artifact 2
+ * - Intake2: Final approach to artifact 2
+ * - Shoot2: Return to goal to shoot artifact 2
  */
-public class Blue_close {
+public class Blue_close_path {
 
-    // We create an instance of the nested class to access the paths
     public Paths paths;
 
-    // Defines where the robot starts on the field (X, Y, Heading)
-    // 180 Degrees usually means facing towards the audience/drivers from the blue side
+    // Starting position (X, Y, Heading in radians)
+    // 270 degrees = facing down (toward bottom of field)
     public Pose startPose = new Pose(37.12432432432433, 135.65405405405406, Math.toRadians(270));
 
-    public Blue_close(Robot r) {
-        // Initialize the nested Paths class using the robot's follower
+    // Constructor for Robot (no camera)
+    public Blue_close_path(Robot r) {
         paths = new Paths(r.f);
     }
 
-    // --- PASTE GENERATOR CODE BELOW THIS LINE ---
+    // Constructor for Robot_camera
+    public Blue_close_path(Robot_camera r) {
+        paths = new Paths(r.f);
+    }
 
     public static class Paths {
         public PathChain Shootpreload;
@@ -39,6 +50,7 @@ public class Blue_close {
         public PathChain Shoot2;
 
         public Paths(Follower follower) {
+            // Path to shoot preload artifact at goal
             Shootpreload = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(37.124, 135.654),
@@ -46,9 +58,9 @@ public class Blue_close {
                                     new Pose(30.119, 114.227)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(143))
-
                     .build();
 
+            // Drive toward artifact 1
             GoTo1 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(30.119, 114.227),
@@ -64,19 +76,18 @@ public class Blue_close {
                                     new Pose(43.395, 84.065)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(143), Math.toRadians(180))
-
                     .build();
 
+            // Final approach to artifact 1
             Intake1 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(43.395, 84.065),
-
                                     new Pose(16.000, 84.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
-
                     .build();
 
+            // Return to goal to shoot artifact 1
             Shoot1 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(16.000, 84.000),
@@ -84,9 +95,9 @@ public class Blue_close {
                                     new Pose(30.119, 114.227)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(143))
-
                     .build();
 
+            // Drive toward artifact 2
             GoTo2 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(30.119, 114.227),
@@ -94,19 +105,18 @@ public class Blue_close {
                                     new Pose(42.000, 60.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(143), Math.toRadians(180))
-
                     .build();
 
+            // Final approach to artifact 2
             Intake2 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(42.000, 60.000),
-
                                     new Pose(15.724, 60.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
-
                     .build();
 
+            // Return to goal to shoot artifact 2
             Shoot2 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(15.724, 60.000),
@@ -114,9 +124,7 @@ public class Blue_close {
                                     new Pose(30.119, 114.227)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(143))
-
                     .build();
         }
     }
-
 }
