@@ -1,13 +1,14 @@
 package org.firstinspires.ftc.teamcode.config.subsystem;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
-@Config
+@Configurable
 public class Intake extends SubsystemBase {
     private final DcMotorEx intakeMotor;
     public static double JAM_THRESHOLD = 6.0;

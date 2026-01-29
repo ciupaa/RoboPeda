@@ -9,8 +9,13 @@ import org.firstinspires.ftc.teamcode.config.util.Alliance;
 import org.firstinspires.ftc.teamcode.config.subsystem.Intake;
 
 /**
- * Standard TeleOp - NO AUTO-ALIGN
- * Just manual driving and shooting
+ * Standard TeleOp - NO CAMERA
+ *
+ * Controls:
+ * - RIGHT BUMPER: High shot (0.65 angle, 1550 velocity)
+ * - LEFT BUMPER: Low shot (0.70 angle, 1200 velocity)
+ * - X: Intake
+ * - Y: Outtake
  */
 @TeleOp(name = "Main TeleOp", group = "Competition")
 public class MainTeleOp extends OpMode {
@@ -23,10 +28,10 @@ public class MainTeleOp extends OpMode {
     private boolean endgameRumbled = false;
     private boolean jamRumbled = false;
 
-    // SHOOTING PRESETS
-    private static final double HIGH_PRESET = 0.65;
-    private static final double LOW_PRESET = 0.70;
-    private static final double IDLE_PRESET = 1.0;
+    // YOUR WORKING PRESETS
+    private static final double HIGH_PRESET = 0.65;  // Far shot - 1550 velocity
+    private static final double LOW_PRESET = 0.70;   // Close shot - 1200 velocity
+    private static final double IDLE_PRESET = 1.0;   // Safe position
 
     // PULSE FEEDING STRATEGY
     private static final double FEED_PULSE_MS = 120;
@@ -34,7 +39,7 @@ public class MainTeleOp extends OpMode {
     private static final double VELOCITY_DROP_THRESHOLD = 150;
     private static final double MIN_RECOVERY_TIME_MS = 400;
 
-    // VELOCITY READY THRESHOLD
+    // VELOCITY READY THRESHOLD - DIFFERENT FOR HIGH vs LOW
     private static final double HIGH_VELOCITY_THRESHOLD = 80;
     private static final double LOW_VELOCITY_THRESHOLD = 120;
 
@@ -55,8 +60,7 @@ public class MainTeleOp extends OpMode {
         r.shooter.block();
 
         telemetry.addData("Status", "Initialized");
-        telemetry.addData("Mode", "Manual Control");
-        telemetry.addLine("No auto-align");
+        telemetry.addData("Mode", "FASTER Close Range");
     }
 
     @Override
@@ -64,17 +68,13 @@ public class MainTeleOp extends OpMode {
         r.periodic();
 
         // =========================================================
-        // MANUAL DRIVING ONLY
+        // DRIVING
         // =========================================================
-        double y = -gamepad1.left_stick_y;
-        double x = -gamepad1.left_stick_x;
+        double y = gamepad1.left_stick_y;
+        double x = gamepad1.left_stick_x;
+        double rx = -gamepad1.right_stick_x;
 
-        // Just manual rotation - triggers included in rotation control
-        double finalRx = -gamepad1.right_stick_x
-                + (gamepad1.left_trigger * 0.3)   // Fine tune left
-                - (gamepad1.right_trigger * 0.3);  // Fine tune right
-
-        r.drive.driveRobotCentric(x, y, finalRx);
+        r.drive.driveRobotCentric(x, y, rx);
 
         // Endgame rumble
         if (getRuntime() >= 120 && !endgameRumbled) {
@@ -109,7 +109,6 @@ public class MainTeleOp extends OpMode {
             switch (shootState) {
                 case WAIT_SPINUP:
                     r.intake.stop();
-
                     if (atSpeed) {
                         lastStableVelocity = currentVel;
                         feedTimer.reset();
@@ -138,13 +137,11 @@ public class MainTeleOp extends OpMode {
 
                 case PULSE_PAUSE:
                     r.intake.stop();
-
                     boolean delayedDrop = (lastStableVelocity - currentVel) > VELOCITY_DROP_THRESHOLD;
                     if (delayedDrop) {
                         recoveryTimer.reset();
                         shootState = ShootState.WAIT_RECOVERY;
-                    }
-                    else if (feedTimer.milliseconds() >= FEED_PAUSE_MS) {
+                    } else if (feedTimer.milliseconds() >= FEED_PAUSE_MS) {
                         if (atSpeed) {
                             feedTimer.reset();
                             shootState = ShootState.PULSE_FEED;
@@ -154,9 +151,7 @@ public class MainTeleOp extends OpMode {
 
                 case WAIT_RECOVERY:
                     r.intake.stop();
-
                     boolean minTimeElapsed = recoveryTimer.milliseconds() >= MIN_RECOVERY_TIME_MS;
-
                     if (minTimeElapsed && atSpeed) {
                         lastStableVelocity = currentVel;
                         feedTimer.reset();
@@ -169,7 +164,6 @@ public class MainTeleOp extends OpMode {
         // INTAKE MODE (X button)
         else if (gamepad1.x) {
             shootState = ShootState.WAIT_SPINUP;
-
             r.shooter.setAngle(IDLE_PRESET);
             r.shooter.stop();
             r.shooter.block();
@@ -191,7 +185,6 @@ public class MainTeleOp extends OpMode {
         else if (gamepad1.y) {
             shootState = ShootState.WAIT_SPINUP;
             jamRumbled = false;
-
             r.shooter.setAngle(IDLE_PRESET);
             r.intake.outtakeSlow();
             r.shooter.stop();
@@ -202,11 +195,14 @@ public class MainTeleOp extends OpMode {
         else {
             shootState = ShootState.WAIT_SPINUP;
             jamRumbled = false;
-
             r.shooter.setAngle(IDLE_PRESET);
             r.shooter.stop();
             r.intake.stop();
             r.shooter.block();
+
+            if (gamepad1.dpad_left) {
+                r.shooter.reverse();
+            }
         }
 
         // =========================================================
@@ -215,18 +211,19 @@ public class MainTeleOp extends OpMode {
 
         telemetry.addData("Shoot State", shootState);
         telemetry.addData("Velocity", "%.0f / %.0f", r.shooter.getVelocity(), currentTargetVel);
+        telemetry.addData("Vel Drop", "%.0f", lastStableVelocity - r.shooter.getVelocity());
 
         telemetry.addLine("---");
+        telemetry.addData("Blocker", shootHeld ? "OPEN" : "CLOSED");
         if (shootHeld) {
-            String mode = highHeld ? "HIGH (1550)" : "LOW (1200)";
+            String mode = highHeld ? "HIGH (1550)" : "LOW (1200 FAST)";
             telemetry.addData("Mode", mode);
+            telemetry.addData("Angle", highHeld ? "0.65" : "0.70");
         } else {
             telemetry.addData("Mode", "IDLE");
         }
 
         telemetry.addLine("Ciupa BOSS");
-        telemetry.addLine("Cristi si Mario is si ei smecheri");
-
         telemetry.update();
     }
 }

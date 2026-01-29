@@ -1,129 +1,64 @@
 package org.firstinspires.ftc.teamcode.config.util;
 
-import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.util.Range;
 
 /**
- * ShooterCalculator_camera - REAL CALIBRATED DISTANCES
- *
- * Based on your actual shooting positions:
- * - CLOSE: 109 cm → 0.70 angle, 1400 velocity
- * - MID: 121 cm → 0.68 angle, 1475 velocity
- * - FAR: 669 cm → 0.65 angle, 1550 velocity
- *
- * ALL DISTANCES IN CENTIMETERS!
+ * ShooterCalculator_camera - REGRESSION EQUATION
+ * * Uses polynomial regression calculated from Desmos to determine
+ * exact angle and velocity for any given distance.
+ * * Equations provided:
+ * Velocity: y = -0.00299656x^2 + 3.01616x + 893.4823
+ * Angle:    y = -(2.27572 * 10^-8)x^3 + 0.0000248578x^2 - 0.00731359x + 1.23132
  */
-@Config
+@Configurable
 public class ShooterCalculator_camera {
 
-    // === LOOKUP TABLE - REAL DISTANCES ===
-
     /**
-     * Your actual shooting distances (CM) - MUST be ascending!
-     *
-     * Measured from testing:
-     * - 109 cm: Close shot (left bumper preset)
-     * - 121 cm: Mid-close shot (needs slight right rotation)
-     * - 669 cm: Far shot (right bumper preset)
+     * Get the full configuration for a specific distance
+     * @param distanceCm Distance from the Limelight in Centimeters
+     * @return ShooterConfig containing target angle and velocity
      */
-    public static double[] DISTANCES = {
-            109.0,   // CLOSE: Left bumper position
-            121.0,   // MID: Mid-close (rotate right)
-            300.0,   // MEDIUM: Interpolated
-            669.0    // FAR: Right bumper position
-    };
+    public static ShooterConfig getConfig(double distanceCm) {
+        return new ShooterConfig(distanceCm);
+    }
 
     /**
-     * Servo angles - Based on YOUR working values!
-     * 0.70 = close (left bumper)
-     * 0.65 = far (right bumper)
-     */
-    public static double[] ANGLES = {
-            0.70,   // Close shot (109 cm)
-            0.67,   // Mid-close (121 cm)
-            0.66,   // Medium (300 cm) - interpolated
-            0.65    // Far shot (669 cm)
-    };
-
-    /**
-     * Motor velocities - INCREASED FOR LEFT BUMPER!
-     * 1400 = close (left bumper - INCREASED from 1200 for more power!)
-     * 1550 = far (right bumper)
-     */
-    public static double[] VELOCITIES = {
-            1200,   // Close shot (109 cm) - INCREASED!
-            1200,   // Mid-close (121 cm) - interpolated
-            1530,   // Medium (300 cm) - interpolated
-            1570    // Far shot (669 cm)
-    };
-
-    // === FALLBACK VALUES ===
-    public static double DEFAULT_ANGLE = 0.7;
-    public static double DEFAULT_VELOCITY = 1200;
-
-    /**
-     * Calculate shooter angle from distance (CM)
+     * Calculates Servo Angle using Cubic Regression
+     * Equation: y = -(2.27572e-8)x^3 + 0.0000248578x^2 - 0.00731359x + 1.23132
      */
     public static double calculateAngle(double distanceCm) {
-        if (distanceCm < 0) return DEFAULT_ANGLE;
+        double x = distanceCm;
 
-        if (distanceCm <= DISTANCES[0]) {
-            return ANGLES[0];
-        }
+        double calculatedAngle =
+                -(2.27572e-8) * Math.pow(x, 3)
+                        + 0.0000248578 * Math.pow(x, 2)
+                        - 0.00731359 * x
+                        + 1.23132;
 
-        if (distanceCm >= DISTANCES[DISTANCES.length - 1]) {
-            return ANGLES[ANGLES.length - 1];
-        }
-
-        for (int i = 0; i < DISTANCES.length - 1; i++) {
-            if (distanceCm >= DISTANCES[i] && distanceCm <= DISTANCES[i + 1]) {
-                return interpolate(
-                        DISTANCES[i], ANGLES[i],
-                        DISTANCES[i + 1], ANGLES[i + 1],
-                        distanceCm
-                );
-            }
-        }
-
-        return DEFAULT_ANGLE;
+        // Safety clamp to ensure we never send an invalid signal to the servo
+        // Assuming your servo valid range is roughly 0.0 to 1.0
+        return Range.clip(calculatedAngle, 0.0, 1.0);
     }
 
     /**
-     * Calculate shooter velocity from distance (CM)
+     * Calculates Motor Velocity (RPM/Ticks) using Quadratic Regression
+     * Equation: y = -0.00299656x^2 + 3.01616x + 893.4823
      */
     public static double calculateVelocity(double distanceCm) {
-        if (distanceCm < 0) return DEFAULT_VELOCITY;
+        double x = distanceCm;
 
-        if (distanceCm <= DISTANCES[0]) {
-            return VELOCITIES[0];
-        }
+        double calculatedVel =
+                -0.00299656 * Math.pow(x, 2)
+                        + 3.01616 * x
+                        + 893.4823;
 
-        if (distanceCm >= DISTANCES[DISTANCES.length - 1]) {
-            return VELOCITIES[VELOCITIES.length - 1];
-        }
-
-        for (int i = 0; i < DISTANCES.length - 1; i++) {
-            if (distanceCm >= DISTANCES[i] && distanceCm <= DISTANCES[i + 1]) {
-                return interpolate(
-                        DISTANCES[i], VELOCITIES[i],
-                        DISTANCES[i + 1], VELOCITIES[i + 1],
-                        distanceCm
-                );
-            }
-        }
-
-        return DEFAULT_VELOCITY;
+        // Safety clamp: Velocity cannot be negative, and shouldn't exceed motor max (e.g., 2000)
+        return Range.clip(calculatedVel, 0.0, 2500.0);
     }
 
     /**
-     * Linear interpolation
-     */
-    private static double interpolate(double x1, double y1, double x2, double y2, double x) {
-        double slope = (y2 - y1) / (x2 - x1);
-        return y1 + (x - x1) * slope;
-    }
-
-    /**
-     * Complete shooter configuration
+     * Complete shooter configuration object
      */
     public static class ShooterConfig {
         public final double angle;
@@ -135,12 +70,5 @@ public class ShooterCalculator_camera {
             this.angle = calculateAngle(distanceCm);
             this.velocity = calculateVelocity(distanceCm);
         }
-    }
-
-    /**
-     * Get complete config for distance (CM)
-     */
-    public static ShooterConfig getConfig(double distanceCm) {
-        return new ShooterConfig(distanceCm);
     }
 }
