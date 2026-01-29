@@ -24,7 +24,7 @@ public class Constants {
             // Primary PIDs
             .headingPIDFCoefficients(new PIDFCoefficients(0.80, 0, 0.04, 0))
             .translationalPIDFCoefficients(new PIDFCoefficients(0.25, 0, 0.0325, 0.018))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.02, 0, 0.001, 0.6, 0))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.01, 0, 0.001, 0.6, 0.5))
 
             // Secondary PIDs
             .useSecondaryHeadingPIDF(true)
