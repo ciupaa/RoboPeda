@@ -2,23 +2,18 @@ package org.firstinspires.ftc.teamcode.config.subsystem;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import java.util.List;
 
 @Configurable
 public class Limelight_camera extends SubsystemBase {
 
     private final Limelight3A limelight;
     private LLResult latestResult = null;
-
-    // Target positions on field (METERS) - TUNE THESE IN FTC DASHBOARD!
-    public static double BLUE_TARGET_X = 0.0;
-    public static double BLUE_TARGET_Y = 3.6;
-
-    public static double RED_TARGET_X = 0.0;
-    public static double RED_TARGET_Y = -3.6;
 
     public final boolean isBlue;
 
@@ -32,12 +27,22 @@ public class Limelight_camera extends SubsystemBase {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(pipeline);
         limelight.start();
-        this.isBlue = isBlueAlliance;
+
+        isBlue = isBlueAlliance;
     }
 
     @Override
     public void periodic() {
         latestResult = limelight.getLatestResult();
+
+        if (latestResult != null && latestResult.isValid()) {
+            Pose3D botpose = latestResult.getBotpose();
+            if (botpose != null) {
+                lastBotposeX = botpose.getPosition().x;
+                lastBotposeY = botpose.getPosition().y;
+                lastBotposeZ = botpose.getPosition().z;
+            }
+        }
     }
 
     public boolean hasTarget() {
@@ -60,55 +65,52 @@ public class Limelight_camera extends SubsystemBase {
     }
 
     /**
-     * Get robot position from MegaTag (MT1)
-     * Returns Pose3D object with x, y, z in METERS
+     * Calculates distance using MegaTag (BotPose) but RELATIVE to the tag.
+     * This fixes coordinate system errors (e.g., getting 389cm instead of 145cm).
      */
-    public Pose3D getBotpose() {
-        if (!hasTarget()) return null;
+    public double getDistanceMegaTag() {
+        if (!hasTarget()) return -1.0;
 
-        Pose3D botpose = latestResult.getBotpose();
+        // Get the list of tags visible (Fiducials)
+        List<LLResultTypes.FiducialResult> fiducials = latestResult.getFiducialResults();
 
-        if (botpose == null) {
-            return null;
+        if (!fiducials.isEmpty()) {
+            // Get the primary tag (usually the first one or the one with highest area)
+            LLResultTypes.FiducialResult tag = fiducials.get(0);
+
+            // Get Robot Pose relative to the Tag (Target Space)
+            // X = Horizontal offset (left/right)
+            // Y = Vertical offset (up/down)
+            // Z = Forward distance (depth)
+            Pose3D robotPoseTargetSpace = tag.getRobotPoseTargetSpace();
+
+            double x = robotPoseTargetSpace.getPosition().x;
+            double z = robotPoseTargetSpace.getPosition().z;
+
+            // Calculate 2D ground distance (hypotenuse of X and Z)
+            double distanceMeters = Math.hypot(x, z);
+
+            return distanceMeters * 100.0; // Convert to CM
         }
 
-        lastBotposeX = botpose.getPosition().x;
-        lastBotposeY = botpose.getPosition().y;
-        lastBotposeZ = botpose.getPosition().z;
-
-        return botpose;
+        // Fallback if Fiducial list is empty but isValid is true
+        return -1.0;
     }
 
     /**
-     * Calculate distance to target using botpose
-     * Returns distance in CENTIMETERS
+     * Main distance getter.
      */
     public double getDistanceToTarget() {
-        Pose3D botpose = getBotpose();
-        if (botpose == null) {
+        double distCm = getDistanceMegaTag();
+
+        // Validity Checks
+        if (distCm < 0 || distCm > 1000) {
             lastDistance = -1;
             return -1.0;
         }
 
-        double robotX = botpose.getPosition().x;
-        double robotY = botpose.getPosition().y;
-
-        double targetX = isBlue ? BLUE_TARGET_X : RED_TARGET_X;
-        double targetY = isBlue ? BLUE_TARGET_Y : RED_TARGET_Y;
-
-        double dx = targetX - robotX;
-        double dy = targetY - robotY;
-
-        double distanceMeters = Math.sqrt(dx * dx + dy * dy);
-        double distanceCm = distanceMeters * 100.0;
-
-        if (distanceCm < 0 || distanceCm > 1000) {
-            lastDistance = -1;
-            return -1.0;
-        }
-
-        lastDistance = distanceCm;
-        return distanceCm;
+        lastDistance = distCm;
+        return distCm;
     }
 
     // Diagnostic getters
@@ -129,18 +131,6 @@ public class Limelight_camera extends SubsystemBase {
     }
 
     public boolean isAligned(double tolerance) {
-        return hasTarget() && Math.abs(getTx()) <= tolerance;
-    }
-
-    public double getAlignmentError() {
-        return getTx();
-    }
-
-    public void setPipeline(int pipeline) {
-        limelight.pipelineSwitch(pipeline);
-    }
-
-    public void stop() {
-        limelight.stop();
+        return hasTarget() && Math.abs(getTx()) < tolerance;
     }
 }

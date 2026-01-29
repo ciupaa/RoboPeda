@@ -75,7 +75,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
 
         double y = gamepad1.left_stick_y;
         double x = gamepad1.left_stick_x;
-        double rx = -gamepad1.right_stick_x; // FIXED: Rotation now correct direction
+        double rx = -gamepad1.right_stick_x;
 
         boolean rightBumper = gamepad1.right_bumper;
         boolean leftBumper = gamepad1.left_bumper;
@@ -104,17 +104,23 @@ public class MainTeleOp_Blue_camera extends OpMode {
                 autoShootState = AutoShootState.ALIGNED_SHOOTING;
                 r.drive.driveRobotCentric(x, y, 0);
 
-                double distanceCm = r.limelight.getDistanceToTarget();
+                // --- ANTI-JITTER FIX START ---
+                // We ONLY update the target values if we are waiting for spinup.
+                // Once we start feeding (PULSE_FEED), we LOCK these values.
+                if (shootState == ShootState.WAIT_SPINUP) {
+                    double distanceCm = r.limelight.getDistanceToTarget();
 
-                if (distanceCm > 0) {
-                    ShooterCalculator_camera.ShooterConfig config =
-                            ShooterCalculator_camera.getConfig(distanceCm);
-                    currentTargetAngle = config.angle;
-                    currentTargetVel = config.velocity;
-                } else {
-                    currentTargetAngle = MANUAL_ANGLE;
-                    currentTargetVel = MANUAL_VELOCITY;
+                    if (distanceCm > 0) {
+                        ShooterCalculator_camera.ShooterConfig config =
+                                ShooterCalculator_camera.getConfig(distanceCm);
+                        currentTargetAngle = config.angle;
+                        currentTargetVel = config.velocity;
+                    } else {
+                        currentTargetAngle = MANUAL_ANGLE;
+                        currentTargetVel = MANUAL_VELOCITY;
+                    }
                 }
+                // --- ANTI-JITTER FIX END ---
 
                 executeShootingSequence(AUTO_VELOCITY_THRESHOLD);
 
@@ -312,6 +318,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
         telemetry.addData("Mode", gamepad1.right_bumper ? "AUTO" :
                 gamepad1.left_bumper ? "MANUAL" : "IDLE");
         telemetry.addData("Vel", "%.0f / %.0f", r.shooter.getVelocity(), currentTargetVel);
+        telemetry.addData("Angle", "%.3f", currentTargetAngle); // Added to visualize lock
 
         telemetry.update();
     }

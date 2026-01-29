@@ -7,9 +7,9 @@ import com.qualcomm.robotcore.util.Range;
  * ShooterCalculator_camera - REGRESSION EQUATION
  * * Uses polynomial regression calculated from Desmos to determine
  * exact angle and velocity for any given distance.
- * * Equations provided (UPDATED 2):
- * Velocity: y = -0.00116902x^3 + 0.953686x^2 - 190.72172x
- * Angle:    y = (1.5289e-7)x^3 - 0.000128837x^2 + 0.0287064x
+ * * Equations provided (UPDATED 4 - Anti-Jitter):
+ * Velocity: y = 0.0000794842x^3 - 0.0414009x^2 + 8.04858x + 715.42863
+ * Angle:    y = (2.76692e-8)x^3 - 0.0000164662x^2 + 0.0027993x + 0.555101
  */
 @Configurable
 public class ShooterCalculator_camera {
@@ -25,38 +25,35 @@ public class ShooterCalculator_camera {
 
     /**
      * Calculates Servo Angle using Cubic Regression
-     * Equation: y = (1.5289e-7)x^3 - 0.000128837x^2 + 0.0287064x
+     * Equation: y = (2.76692e-8)x^3 - 0.0000164662x^2 + 0.0027993x + 0.555101
      */
     public static double calculateAngle(double distanceCm) {
         double x = distanceCm;
 
         double calculatedAngle =
-                (1.5289e-7) * Math.pow(x, 3)
-                        - 0.000128837 * Math.pow(x, 2)
-                        + 0.0287064 * x;
-        // + 0 (Intercept is 0)
+                (2.76692e-8) * Math.pow(x, 3)
+                        - 0.0000164662 * Math.pow(x, 2)
+                        + 0.0027993 * x
+                        + 0.555101;
 
-        // Safety clamp: 0 to 180 degrees.
-        // NOTE: If your servo needs 0.0-1.0, you may need to divide this result by the max angle.
-        return Range.clip(calculatedAngle, 0.0, 180.0);
+        // Safety clamp: 0.0 to 1.0 (Servo Position)
+        return Range.clip(calculatedAngle, 0.0, 1.0);
     }
 
     /**
      * Calculates Motor Velocity (RPM/Ticks) using Cubic Regression
-     * Equation: y = -0.00116902x^3 + 0.953686x^2 - 190.72172x
+     * Equation: y = 0.0000794842x^3 - 0.0414009x^2 + 8.04858x + 715.42863
      */
     public static double calculateVelocity(double distanceCm) {
         double x = distanceCm;
 
         double calculatedVel =
-                -0.00116902 * Math.pow(x, 3)
-                        + 0.953686 * Math.pow(x, 2)
-                        - 190.72172 * x;
-        // + 0 (Intercept is 0)
+                0.0000794842 * Math.pow(x, 3)
+                        - 0.0414009 * Math.pow(x, 2)
+                        + 8.04858 * x
+                        + 715.42863;
 
-        // Safety clamp:
-        // This equation generates negative values for low distances (x < ~200).
-        // Clipping at 0.0 prevents the motor from reversing.
+        // Safety clamp: 0 to 2500
         return Range.clip(calculatedVel, 0.0, 2500.0);
     }
 
