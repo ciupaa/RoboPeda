@@ -33,7 +33,7 @@ public class Robot_camera {
 
         // FIXED: Pipeline 1 = Blue (Tag 20), Pipeline 2 = Red (Tag 24)
         int pipeline = (alliance == Alliance.BLUE) ? 1 : 2;
-        limelight = new Limelight_camera(hardwareMap, pipeline);
+        limelight = new Limelight_camera(hardwareMap,    pipeline);
 
         f = Constants.createFollower(hardwareMap);
 

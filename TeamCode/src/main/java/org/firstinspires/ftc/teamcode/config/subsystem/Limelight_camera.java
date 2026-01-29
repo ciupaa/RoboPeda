@@ -1,42 +1,38 @@
 package org.firstinspires.ftc.teamcode.config.subsystem;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-/**
- * Limelight Vision Subsystem - RAW DISTANCE (CENTIMETERS)
- *
- * Uses pure trigonometric distance calculation - NO CORRECTION FACTOR.
- * Make sure these values are PRECISELY measured:
- * - Camera height from ground to lens center
- * - Camera tilt angle (use protractor or level app)
- * - AprilTag height from ground to tag center
- */
 @Configurable
 public class Limelight_camera extends SubsystemBase {
 
     private final Limelight3A limelight;
     private LLResult latestResult = null;
 
-    // === PHYSICAL CONSTANTS - IN CENTIMETERS ===
+    // Target positions on field (METERS) - TUNE THESE IN FTC DASHBOARD!
+    public static double BLUE_TARGET_X = 0.0;
+    public static double BLUE_TARGET_Y = 3.6;
 
-    public static double LIMELIGHT_HEIGHT_CM = 32.0;      // Height of camera from ground
-    public static double LIMELIGHT_MOUNT_ANGLE_DEG = 15.0; // Angle camera is tilted up
-    public static double TARGET_HEIGHT_CM = 75.0;          // Height of AprilTag from ground
+    public static double RED_TARGET_X = 0.0;
+    public static double RED_TARGET_Y = -3.6;
 
-    /**
-     * Constructor with pipeline selection
-     * @param hardwareMap Hardware map
-     * @param pipeline Pipeline number (1 for Blue, 2 for Red, etc.)
-     */
-    public Limelight_camera(HardwareMap hardwareMap, int pipeline) {
+    public final boolean isBlue;
+
+    // Diagnostic data
+    private double lastBotposeX = 0;
+    private double lastBotposeY = 0;
+    private double lastBotposeZ = 0;
+    private double lastDistance = -1;
+
+    public Limelight_camera(HardwareMap hardwareMap, int pipeline, boolean isBlueAlliance) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(pipeline);
         limelight.start();
+        this.isBlue = isBlueAlliance;
     }
 
     @Override
@@ -44,13 +40,9 @@ public class Limelight_camera extends SubsystemBase {
         latestResult = limelight.getLatestResult();
     }
 
-    // ========== TARGET DETECTION ==========
-
     public boolean hasTarget() {
         return latestResult != null && latestResult.isValid();
     }
-
-    // ========== RAW TARGETING DATA ==========
 
     public double getTx() {
         if (!hasTarget()) return 0.0;
@@ -67,46 +59,74 @@ public class Limelight_camera extends SubsystemBase {
         return latestResult.getTa();
     }
 
-    // ========== DISTANCE CALCULATION - RAW (NO CORRECTION) ==========
-
     /**
-     * Calculate distance to AprilTag in CENTIMETERS using trigonometry
-     *
-     * Formula: distance = (targetHeight - cameraHeight) / tan(cameraAngle + ty)
-     *
-     * @return Distance in CM, or -1 if no target
+     * Get robot position from MegaTag (MT1)
+     * Returns Pose3D object with x, y, z in METERS
      */
-    public double getDistanceToTarget() {
-        if (!hasTarget()) return -1.0;
+    public Pose3D getBotpose() {
+        if (!hasTarget()) return null;
 
-        double ty = getTy();
-        double angleToTargetDeg = LIMELIGHT_MOUNT_ANGLE_DEG + ty;
-        double angleToTargetRad = Math.toRadians(angleToTargetDeg);
+        Pose3D botpose = latestResult.getBotpose();
 
-        double heightDifference = TARGET_HEIGHT_CM - LIMELIGHT_HEIGHT_CM;
-        double distance = heightDifference / Math.tan(angleToTargetRad);
+        if (botpose == null) {
+            return null;
+        }
 
-        return distance;
+        lastBotposeX = botpose.getPosition().x;
+        lastBotposeY = botpose.getPosition().y;
+        lastBotposeZ = botpose.getPosition().z;
+
+        return botpose;
     }
 
     /**
-     * Get distance in meters
+     * Calculate distance to target using botpose
+     * Returns distance in CENTIMETERS
      */
+    public double getDistanceToTarget() {
+        Pose3D botpose = getBotpose();
+        if (botpose == null) {
+            lastDistance = -1;
+            return -1.0;
+        }
+
+        double robotX = botpose.getPosition().x;
+        double robotY = botpose.getPosition().y;
+
+        double targetX = isBlue ? BLUE_TARGET_X : RED_TARGET_X;
+        double targetY = isBlue ? BLUE_TARGET_Y : RED_TARGET_Y;
+
+        double dx = targetX - robotX;
+        double dy = targetY - robotY;
+
+        double distanceMeters = Math.sqrt(dx * dx + dy * dy);
+        double distanceCm = distanceMeters * 100.0;
+
+        if (distanceCm < 0 || distanceCm > 1000) {
+            lastDistance = -1;
+            return -1.0;
+        }
+
+        lastDistance = distanceCm;
+        return distanceCm;
+    }
+
+    // Diagnostic getters
+    public double getLastBotposeX() { return lastBotposeX; }
+    public double getLastBotposeY() { return lastBotposeY; }
+    public double getLastBotposeZ() { return lastBotposeZ; }
+    public double getLastDistance() { return lastDistance; }
+
     public double getDistanceToTargetMeters() {
         double cm = getDistanceToTarget();
         if (cm < 0) return -1.0;
         return cm / 100.0;
     }
 
-    /**
-     * Check if in optimal shooting range (CM)
-     */
     public boolean isInRange(double minDistanceCm, double maxDistanceCm) {
         double distance = getDistanceToTarget();
         return distance > 0 && distance >= minDistanceCm && distance <= maxDistanceCm;
     }
-
-    // ========== ALIGNMENT HELPERS ==========
 
     public boolean isAligned(double tolerance) {
         return hasTarget() && Math.abs(getTx()) <= tolerance;
@@ -115,8 +135,6 @@ public class Limelight_camera extends SubsystemBase {
     public double getAlignmentError() {
         return getTx();
     }
-
-    // ========== PIPELINE CONTROL ==========
 
     public void setPipeline(int pipeline) {
         limelight.pipelineSwitch(pipeline);
