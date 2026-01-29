@@ -48,11 +48,11 @@ public class RealAuto extends OpModeCommand {
                                 new InstantAction(() -> r.shooter.unblock())
 
                         ),
-                        new ShootCommand(r.shooter, r.intake, false, 0.65),
+                        //new ShootCommand(r.shooter, r.intake, false, 0.65),
                         //new WaitCommand(5000),
 
                         new ParallelCommandGroup(
-                                new IntakeCommand(r.intake, false),
+                                //new IntakeCommand(r.intake, false),
                                 new InstantAction(() -> r.shooter.block()),
                                 new FollowPath(r, p.paths.GoTo1)
 
@@ -60,28 +60,28 @@ public class RealAuto extends OpModeCommand {
                         new FollowPath(r, p.paths.Intake1),
 
                         new ParallelCommandGroup(
-                                new InstantAction(() -> r.intake.stop()),
+                                //new InstantAction(() -> r.intake.stop()),
                                 new FollowPath(r, p.paths.Shoot1),
                                 new InstantAction(() -> r.shooter.setAngle(0.65))
                         ),
-                        new ShootCommand(r.shooter, r.intake, false, 0.65),
+                        //new ShootCommand(r.shooter, r.intake, false, 0.65),
                         //new WaitCommand(5000),
 
 
                         new ParallelCommandGroup(
                                 new FollowPath(r, p.paths.GoTo2),
-                                new IntakeCommand(r.intake, false),
+                                //new IntakeCommand(r.intake, false),
                                 new InstantAction(() -> r.shooter.block())
                         ),
 
                         new FollowPath(r, p.paths.Intake2),
 
                         new ParallelCommandGroup(
-                                new InstantAction(() -> r.intake.stop()),
+                               // new InstantAction(() -> r.intake.stop()),
                                 new FollowPath(r, p.paths.Shoot2),
                                 new InstantAction(() -> r.shooter.setAngle(0.65))
-                        ),
-                        new ShootCommand(r.shooter, r.intake, false, 0.65)
+                        )
+                       // new ShootCommand(r.shooter, r.intake, false, 0.65)
                         //new WaitCommand(5000)
                 )
         );
