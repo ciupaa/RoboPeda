@@ -29,7 +29,7 @@ public class RealAuto extends OpModeCommand {
 
     @Override
     public void initialize() {
-        // 1. Initialize Robot Hardware
+        // 1. Initialize Robot Hardwarerr
         r = new Robot(hardwareMap, Alliance.BLUE);
 
         // 2. Load the Path Map
