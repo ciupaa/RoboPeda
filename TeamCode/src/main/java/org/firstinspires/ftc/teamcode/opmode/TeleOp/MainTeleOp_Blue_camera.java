@@ -31,6 +31,10 @@ public class MainTeleOp_Blue_camera extends OpMode {
     private boolean jamRumbled = false;
     private boolean alignedRumbled = false;
 
+    // --- TOGGLE STATE VARIABLES ---
+    private boolean intakeActive = false;
+    private boolean lastX = false;
+
     private static final double MANUAL_ANGLE = 0.70;
     private static final double MANUAL_VELOCITY = 1200;
     private static final double IDLE_PRESET = 1.0;
@@ -80,8 +84,22 @@ public class MainTeleOp_Blue_camera extends OpMode {
         boolean rightBumper = gamepad1.right_bumper;
         boolean leftBumper = gamepad1.left_bumper;
 
-        if (rightBumper && r.limelight.hasTarget()) {
+        // --- INTAKE TOGGLE LOGIC ---
+        // Detect rising edge (button pressed now, but wasn't before)
+        if (gamepad1.x && !lastX) {
+            intakeActive = !intakeActive; // Toggle state
+        }
+        lastX = gamepad1.x; // Update history
 
+        // Safety: If we start shooting or resetting, force intake OFF
+        if (rightBumper || leftBumper || gamepad1.b || gamepad1.y) {
+            intakeActive = false;
+        }
+
+        // --- STATE MACHINE ---
+
+        if (rightBumper && r.limelight.hasTarget()) {
+            // ... (Auto Shoot Logic) ...
             double tx = r.limelight.getTx();
             double dt = pidTimer.seconds();
             pidTimer.reset();
@@ -104,9 +122,6 @@ public class MainTeleOp_Blue_camera extends OpMode {
                 autoShootState = AutoShootState.ALIGNED_SHOOTING;
                 r.drive.driveRobotCentric(x, y, 0);
 
-                // --- ANTI-JITTER FIX START ---
-                // We ONLY update the target values if we are waiting for spinup.
-                // Once we start feeding (PULSE_FEED), we LOCK these values.
                 if (shootState == ShootState.WAIT_SPINUP) {
                     double distanceCm = r.limelight.getDistanceToTarget();
 
@@ -120,7 +135,6 @@ public class MainTeleOp_Blue_camera extends OpMode {
                         currentTargetVel = MANUAL_VELOCITY;
                     }
                 }
-                // --- ANTI-JITTER FIX END ---
 
                 executeShootingSequence(AUTO_VELOCITY_THRESHOLD);
 
@@ -142,6 +156,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
         }
 
         else if (leftBumper) {
+            // ... (Manual Shoot Logic) ...
             autoShootState = AutoShootState.IDLE;
             alignedRumbled = false;
             lastTxError = 0;
@@ -154,7 +169,8 @@ public class MainTeleOp_Blue_camera extends OpMode {
             executeShootingSequence(MANUAL_VELOCITY_THRESHOLD);
         }
 
-        else if (gamepad1.x) {
+        // --- INTAKE MODE (Activated by Toggle) ---
+        else if (intakeActive) { // CHANGED: Checks the toggle variable instead of holding X
             autoShootState = AutoShootState.IDLE;
             shootState = ShootState.WAIT_SPINUP;
             alignedRumbled = false;
@@ -173,12 +189,15 @@ public class MainTeleOp_Blue_camera extends OpMode {
                     gamepad1.rumble(500);
                     jamRumbled = true;
                 }
+                // Optional: Auto-reverse if jammed
+                // r.intake.outtakeSlow();
             } else {
                 jamRumbled = false;
             }
         }
 
         else if (gamepad1.y) {
+            // ... (Outtake / Reset Logic) ...
             autoShootState = AutoShootState.IDLE;
             shootState = ShootState.WAIT_SPINUP;
             jamRumbled = false;
@@ -194,6 +213,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
         }
 
         else {
+            // ... (Idle Logic) ...
             autoShootState = AutoShootState.IDLE;
             shootState = ShootState.WAIT_SPINUP;
             jamRumbled = false;
@@ -204,7 +224,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
 
             r.shooter.setAngle(IDLE_PRESET);
             r.shooter.stop();
-            r.intake.stop();
+            r.intake.stop(); // Stops intake when toggle is OFF
             r.shooter.block();
 
             if (gamepad1.dpad_left) {
@@ -220,6 +240,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
         updateTelemetry();
     }
 
+    // ... (Existing Methods: executeShootingSequence, updateTelemetry) ...
     private void executeShootingSequence(double velocityThreshold) {
         r.shooter.setAngle(currentTargetAngle);
         r.shooter.unblock();
@@ -285,26 +306,22 @@ public class MainTeleOp_Blue_camera extends OpMode {
 
     private void updateTelemetry() {
         telemetry.addLine("=== BLUE (TAG 20) ===");
-
+        // ... (Existing Telemetry) ...
         if (r.limelight.hasTarget()) {
             double distance = r.limelight.getDistanceToTarget();
-
             telemetry.addLine("=== MEGATAG POSITION ===");
             telemetry.addData("Robot X", "%.3f m", r.limelight.getLastBotposeX());
             telemetry.addData("Robot Y", "%.3f m", r.limelight.getLastBotposeY());
             telemetry.addData("Robot Z", "%.3f m", r.limelight.getLastBotposeZ());
-
             telemetry.addLine("");
             telemetry.addData("TX", "%.2f deg", r.limelight.getTx());
             telemetry.addData("TY", "%.2f deg", r.limelight.getTy());
-
             telemetry.addLine("");
             if (distance > 0) {
                 telemetry.addData("Distance", "%.1f cm (%.2f m)", distance, distance/100.0);
             } else {
                 telemetry.addData("Distance", "INVALID - Tune target coords!");
             }
-
             if (autoShootState == AutoShootState.ALIGNING) {
                 telemetry.addData("Status", "ALIGNING");
             } else if (autoShootState == AutoShootState.ALIGNED_SHOOTING) {
@@ -313,13 +330,12 @@ public class MainTeleOp_Blue_camera extends OpMode {
         } else {
             telemetry.addData("Camera", "No Tag 20");
         }
-
         telemetry.addLine("");
         telemetry.addData("Mode", gamepad1.right_bumper ? "AUTO" :
                 gamepad1.left_bumper ? "MANUAL" : "IDLE");
+        telemetry.addData("Intake", intakeActive ? "ON (Toggle)" : "OFF"); // Added status
         telemetry.addData("Vel", "%.0f / %.0f", r.shooter.getVelocity(), currentTargetVel);
-        telemetry.addData("Angle", "%.3f", currentTargetAngle); // Added to visualize lock
-
+        telemetry.addData("Angle", "%.3f", currentTargetAngle);
         telemetry.update();
     }
 }
