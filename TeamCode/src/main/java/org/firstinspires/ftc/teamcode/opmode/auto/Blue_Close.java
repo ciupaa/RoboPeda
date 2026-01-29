@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.config.Robot_camera;
 import org.firstinspires.ftc.teamcode.config.commands.AutoShootCommand;
 import org.firstinspires.ftc.teamcode.config.commands.FollowPath;
 import org.firstinspires.ftc.teamcode.config.commands.IntakeCommand;
-import org.firstinspires.ftc.teamcode.config.paths.Blue_close;
+import org.firstinspires.ftc.teamcode.config.paths.Blue_close_path;
 import org.firstinspires.ftc.teamcode.config.util.Alliance;
 import org.firstinspires.ftc.teamcode.config.util.OpModeCommand;
 
@@ -40,7 +40,7 @@ public class Blue_Close extends OpModeCommand {
         r = new Robot_camera(hardwareMap, Alliance.BLUE);
 
         // 2. Load the Path Map
-        Blue_close p = new Blue_close(r);
+        Blue_close_path p = new Blue_close_path(r);
 
         // 3. Tell Pedro Pathing where we start
         r.f.setStartingPose(p.startPose);
@@ -53,13 +53,13 @@ public class Blue_Close extends OpModeCommand {
 
                         // STEP 1: Drive to goal + prep shooter
                         new ParallelCommandGroup(
-                                new InstantAction(() -> r.shooter.setAngle(0.65)),    // Set initial angle
+                                new InstantAction(() -> r.shooter.setAngle(0.7)),    // Set initial angle
                                 new InstantAction(() -> r.shooter.unblock()),          // Open blocker
                                 new FollowPath(r, p.paths.Shootpreload)
                         ),
 
                         // STEP 2: Shoot preload artifact (distance-based, 3 seconds max)
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 3.0),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 5),
 
                         // STEP 3: Close blocker after shooting
                         new InstantAction(() -> r.shooter.block()),
@@ -84,7 +84,7 @@ public class Blue_Close extends OpModeCommand {
                         ),
 
                         // STEP 7: Shoot artifact 1 (distance-based, 3 seconds max)
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 3.0),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 5),
 
                         // STEP 8: Close blocker after shooting
                         new InstantAction(() -> r.shooter.block()),
@@ -107,7 +107,7 @@ public class Blue_Close extends OpModeCommand {
                         ),
 
                         // STEP 12: Shoot artifact 2 (distance-based, 3 seconds max)
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 3.0),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 5),
 
                         // STEP 13: Close blocker and safe state
                         new InstantAction(() -> {

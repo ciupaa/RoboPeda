@@ -40,6 +40,7 @@ public class Blue_close_path {
         paths = new Paths(r.f);
     }
 
+
     public static class Paths {
         public PathChain Shootpreload;
         public PathChain GoTo1;
@@ -50,22 +51,21 @@ public class Blue_close_path {
         public PathChain Shoot2;
 
         public Paths(Follower follower) {
-            // Path to shoot preload artifact at goal
             Shootpreload = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(37.124, 135.654),
                                     new Pose(37.622, 120.941),
-                                    new Pose(30.119, 114.227)
+                                    new Pose(41.989, 112.011)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(143))
+
                     .build();
 
-            // Drive toward artifact 1
             GoTo1 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(30.119, 114.227),
-                                    new Pose(34.953, 109.943),
-                                    new Pose(37.495, 107.181),
+                                    new Pose(41.989, 112.011),
+                                    new Pose(40.986, 111.305),
+                                    new Pose(43.917, 107.181),
                                     new Pose(39.633, 104.382),
                                     new Pose(41.287, 101.696),
                                     new Pose(42.639, 98.824),
@@ -76,55 +76,59 @@ public class Blue_close_path {
                                     new Pose(43.395, 84.065)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(143), Math.toRadians(180))
+
                     .build();
 
-            // Final approach to artifact 1
             Intake1 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(43.395, 84.065),
+
                                     new Pose(16.000, 84.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+
                     .build();
 
-            // Return to goal to shoot artifact 1
             Shoot1 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(16.000, 84.000),
                                     new Pose(43.297, 93.054),
-                                    new Pose(30.119, 114.227)
+                                    new Pose(41.989, 112.011)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(143))
+
                     .build();
 
-            // Drive toward artifact 2
             GoTo2 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(30.119, 114.227),
-                                    new Pose(56.297, 85.751),
+                                    new Pose(41.989, 112.011),
+                                    new Pose(59.995, 83.611),
                                     new Pose(42.000, 60.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(143), Math.toRadians(180))
+
                     .build();
 
-            // Final approach to artifact 2
             Intake2 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(42.000, 60.000),
+
                                     new Pose(15.724, 60.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+
                     .build();
 
-            // Return to goal to shoot artifact 2
             Shoot2 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(15.724, 60.000),
                                     new Pose(52.278, 69.265),
-                                    new Pose(30.119, 114.227)
+                                    new Pose(41.989, 112.011)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(143))
+
                     .build();
         }
     }
+
 }

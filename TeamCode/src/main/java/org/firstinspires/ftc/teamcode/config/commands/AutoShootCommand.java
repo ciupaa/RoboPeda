@@ -91,13 +91,13 @@ public class AutoShootCommand extends CommandBase {
                         targetVelocity = config.velocity;
                     } else {
                         // Fallback if distance invalid
-                        targetAngle = 0.65;
-                        targetVelocity = 1550;
+                        targetAngle = 0.7;
+                        targetVelocity = 1200;
                     }
                 } else {
                     // No target - use default high shot
-                    targetAngle = 0.65;
-                    targetVelocity = 1550;
+                    targetAngle = 0.7;
+                    targetVelocity = 1200;
                 }
 
                 // Set shooter configuration
