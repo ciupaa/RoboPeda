@@ -24,7 +24,7 @@ import org.firstinspires.ftc.teamcode.config.util.OpModeCommand;
  */
 @Autonomous(name = "FULL SYSTEM TEST", group = "Competition")
 public class RealAuto extends OpModeCommand {
-
+ 
     Robot r;
 
     @Override
