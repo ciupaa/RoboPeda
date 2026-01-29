@@ -11,13 +11,6 @@ import org.firstinspires.ftc.teamcode.config.subsystem.Shooter;
 import org.firstinspires.ftc.teamcode.config.util.Alliance;
 import java.util.List;
 
-/**
- * Robot Configuration WITH Limelight
- *
- * Pipeline Selection:
- * - Blue Alliance: Pipeline 1 (Tag 20)
- * - Red Alliance: Pipeline 2 (Tag 24)
- */
 public class Robot_camera {
     public final MecanumDrive drive;
     public final Shooter shooter;
@@ -31,9 +24,10 @@ public class Robot_camera {
         shooter = new Shooter(hardwareMap);
         intake = new Intake(hardwareMap);
 
-        // FIXED: Pipeline 1 = Blue (Tag 20), Pipeline 2 = Red (Tag 24)
+        // FIXED: Added the missing boolean parameter
         int pipeline = (alliance == Alliance.BLUE) ? 1 : 2;
-        limelight = new Limelight_camera(hardwareMap,    pipeline);
+        boolean isBlue = (alliance == Alliance.BLUE);
+        limelight = new Limelight_camera(hardwareMap, pipeline, isBlue);
 
         f = Constants.createFollower(hardwareMap);
 
