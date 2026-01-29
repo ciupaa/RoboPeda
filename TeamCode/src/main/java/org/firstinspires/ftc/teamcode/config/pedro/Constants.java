@@ -21,19 +21,19 @@ public class Constants {
             .lateralZeroPowerAcceleration(-54.74851)
 
             // Primary PIDs
-            .headingPIDFCoefficients(new PIDFCoefficients(1.0, 0, 0.01, 0))
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.3, 0, 0.0, 0.018))
+            .headingPIDFCoefficients(new PIDFCoefficients(0.80, 0, 0.04, 0))
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.25, 0, 0.0325, 0.018))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.02, 0, 0.001, 0.6, 0))
 
             // Secondary PIDs
-            .useSecondaryHeadingPIDF(true)
-            .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(3.0, 0, 0.04, 0))
+            //.useSecondaryHeadingPIDF(true)
+            //.secondaryHeadingPIDFCoefficients(new PIDFCoefficients(3.0, 0, 0.04, 0))
 
-            .useSecondaryTranslationalPIDF(true)
-            .secondaryTranslationalPIDFCoefficients(new PIDFCoefficients(0.6, 0, 0.04, 0.02))
+            //.useSecondaryTranslationalPIDF(true)
+            //.secondaryTranslationalPIDFCoefficients(new PIDFCoefficients(0.6, 0, 0.04, 0.02))
 
-            .useSecondaryDrivePIDF(true)
-            .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.1, 0, 0.01, 0.6, 0))
+            //.useSecondaryDrivePIDF(true)
+            //.secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.1, 0, 0.01, 0.6, 0))
             ;
 
     public static MecanumConstants driveConstants = new MecanumConstants()
