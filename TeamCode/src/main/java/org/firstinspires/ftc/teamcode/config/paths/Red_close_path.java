@@ -43,20 +43,20 @@ public class Red_close_path {
         public Paths(Follower follower) {
 
             // FIXED: All headings + 180°
-            // OLD: 270→217  NEW: 90→37 (270+180=90, 217+180=397=37)
+            // OLD: 270→217  NEW: 90→40 (270+180=90, 217+180=397=40)
             Shootpreload = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(106.876, 135.654),
-                                    new Pose(106.378, 120.941),
-                                    new Pose(96.589073089701, 110.73525249169434)
+                                    new Pose(106.408, 120.941),
+                                    new Pose(101.8515315614618, 104.35651495016612)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(37))
+                    ).setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(40))
                     .build();
 
-            // OLD: 217→180  NEW: 37→0 (217+180=37, 180+180=0)
+            // OLD: 217→180  NEW: 40→0 (217+180=40, 180+180=0)
             GoTo1 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(96.589073089701, 110.73525249169434),
+                                    new Pose(101.8515315614618, 104.35651495016612),
                                     new Pose(103.014, 111.305),
                                     new Pose(100.083, 107.181),
                                     new Pose(104.367, 104.382),
@@ -68,7 +68,7 @@ public class Red_close_path {
                                     new Pose(99.962, 87.122),
                                     new Pose(100.605, 84.065)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(37), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(40), Math.toRadians(0))
                     .build();
 
             // OLD: 180→180  NEW: 0→0
@@ -80,24 +80,24 @@ public class Red_close_path {
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                     .build();
 
-            // OLD: 180→217  NEW: 0→37
+            // OLD: 180→217  NEW: 0→40
             Shoot1 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(128.000, 84.000),
                                     new Pose(100.703, 93.054),
-                                    new Pose(96.589073089701, 110.73525249169434)
+                                    new Pose(101.8515315614618, 104.35651495016612)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37))
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(40))
                     .build();
 
-            // OLD: 217→180  NEW: 37→0
+            // OLD: 217→180  NEW: 40→0
             GoTo2 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(96.589073089701, 110.73525249169434),
+                                    new Pose(101.8515315614618, 104.35651495016612),
                                     new Pose(84.005, 83.611),
                                     new Pose(102.000, 60.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(37), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(40), Math.toRadians(0))
                     .build();
 
             // OLD: 180→180  NEW: 0→0
@@ -109,14 +109,14 @@ public class Red_close_path {
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                     .build();
 
-            // OLD: 180→217  NEW: 0→37
+            // OLD: 180→217  NEW: 0→40
             Shoot2 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(128.276, 60.000),
                                     new Pose(91.722, 69.265),
-                                    new Pose(96.589073089701, 110.73525249169434)
+                                    new Pose(101.8515315614618, 104.35651495016612)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37))
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(40))
                     .build();
         }
     }
