@@ -52,20 +52,20 @@ public class Red_Far_Path {
                             new BezierCurve(
                                     new Pose(111.351, 8.195),
                                     new Pose(99.103, 19.665),
-                                    new Pose(83.66727906976745, 17.39436877076411)
+                                    new Pose(83.66727906976745, 17.39436876776411)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(70))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(67))
                     .build();
 
             // GoTo1 - Curve toward artifact 1
             // UPDATED: 71° → 73°
             GoTo1 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(83.66727906976745, 17.39436877076411),
+                                    new Pose(83.66727906976745, 17.39436876776411),
                                     new Pose(85.689, 28.992),
                                     new Pose(100.000, 35.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(70), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(67), Math.toRadians(0))
                     .build();
 
             // Intake1 - Straight line to artifact 1
@@ -83,9 +83,9 @@ public class Red_Far_Path {
                             new BezierCurve(
                                     new Pose(128.865, 35.000),
                                     new Pose(95.281, 36.862),
-                                    new Pose(83.66727906976745, 17.39436877076411)
+                                    new Pose(83.66727906976745, 17.39436876776411)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(70))
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(67))
                     .build();
         }
     }
