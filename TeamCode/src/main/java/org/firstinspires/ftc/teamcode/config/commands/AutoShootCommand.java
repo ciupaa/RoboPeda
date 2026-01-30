@@ -86,7 +86,7 @@ import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
   warmupTimer.reset();
   tagWaitTimer.reset();
   
-  
+  ```
    state = State.CAMERA_WARMUP;
    lastStableVelocity = 0.0;
    shootStartTime = 0;
@@ -94,7 +94,6 @@ import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
    intake.stop();
    shooter.stop();
    shooter.block();
-  
   
   }
   

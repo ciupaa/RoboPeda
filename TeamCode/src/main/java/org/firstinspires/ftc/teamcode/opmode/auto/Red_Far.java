@@ -6,7 +6,7 @@ import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 
 import org.firstinspires.ftc.teamcode.config.Robot_camera;
-import org.firstinspires.ftc.teamcode.config.commands.AutoShootCommand;
+import org.firstinspires.ftc.teamcode.config.subsystem.AutoShootCommand;
 import org.firstinspires.ftc.teamcode.config.commands.FollowPath;
 import org.firstinspires.ftc.teamcode.config.commands.IntakeCommand;
 import org.firstinspires.ftc.teamcode.config.paths.Red_Far_Path;
