@@ -71,7 +71,12 @@ public class MainTeleOp extends OpMode {
     @Override
     public void loop() {
         r.periodic();
-
+        telemetry.addLine("Acest robot a fost programar de Cristi, Alex si Ciupa, 3 fraieri");
+        telemetry.addLine(" ");
+        telemetry.addLine("Ciupa BOSS");
+        telemetry.addLine("Mario e cel mai slab(bun) driver");
+        telemetry.addLine("Cristi e cel mai autist(extraordinar) coach");
+        telemetry.addLine("Acest robot a fost programar de Cristi, Alex si Ciupa, 3 fraieri");
         // =========================================================
         // DRIVING
         // =========================================================
@@ -234,7 +239,7 @@ public class MainTeleOp extends OpMode {
             telemetry.addData("Mode", "IDLE");
         }
 
-        telemetry.addLine("Ciupa BOSS");
+
         telemetry.update();
     }
 }

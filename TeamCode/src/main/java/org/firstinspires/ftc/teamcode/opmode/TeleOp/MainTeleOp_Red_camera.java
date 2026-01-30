@@ -80,6 +80,12 @@ public class MainTeleOp_Red_camera extends OpMode {
     @Override
     public void loop() {
         r.periodic();
+        telemetry.addLine("Acest robot a fost programar de Cristi, Alex si Ciupa, 3 fraieri");
+        telemetry.addLine(" ");
+        telemetry.addLine("Ciupa BOSS");
+        telemetry.addLine("Mario e cel mai slab(bun) driver");
+        telemetry.addLine("Cristi e cel mai autist(extraordinar) coach");
+        telemetry.addLine("Acest robot a fost programar de Cristi, Alex si Ciupa, 3 fraieri");
 
         double y = gamepad1.left_stick_y;
         double x = gamepad1.left_stick_x;
@@ -307,6 +313,7 @@ public class MainTeleOp_Red_camera extends OpMode {
     }
 
     private void updateTelemetry() {
+
         telemetry.addLine("=== RED (TAG 24) ===");
         if (r.limelight.hasTarget()) {
             double distance = r.limelight.getDistanceToTarget();
@@ -337,6 +344,7 @@ public class MainTeleOp_Red_camera extends OpMode {
         telemetry.addData("Intake", intakeActive ? "ON (Toggle)" : "OFF");
         telemetry.addData("Vel", "%.0f / %.0f", r.shooter.getVelocity(), currentTargetVel);
         telemetry.addData("Angle", "%.3f", currentTargetAngle);
+
         telemetry.update();
     }
 }
