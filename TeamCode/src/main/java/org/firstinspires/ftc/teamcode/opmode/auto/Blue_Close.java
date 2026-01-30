@@ -35,7 +35,7 @@ public class Blue_Close extends OpModeCommand {
                                 new FollowPath(r, p.paths.Shootpreload)
                         ),
                         new InstantAction(() -> currentStep = "Preload: Shooting"),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 30),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4),
                         new InstantAction(() -> r.shooter.block()),
 
                         // ARTIFACT 1
@@ -43,7 +43,7 @@ public class Blue_Close extends OpModeCommand {
                         new FollowPath(r, p.paths.GoTo1),
                         new InstantAction(() -> currentStep = "Art1: Intaking"),
                         new ParallelCommandGroup(
-                                new IntakeCommand(r.intake, false, 3),
+                                new IntakeCommand(r.intake, false, 2),
                                 new FollowPath(r, p.paths.Intake1)
                         ),
                         new InstantAction(() -> currentStep = "Art1: Returning to goal"),
@@ -52,7 +52,7 @@ public class Blue_Close extends OpModeCommand {
                                 new FollowPath(r, p.paths.Shoot1)
                         ),
                         new InstantAction(() -> currentStep = "Art1: Shooting"),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 30),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4),
                         new InstantAction(() -> r.shooter.block()),
 
                         // ARTIFACT 2
@@ -60,7 +60,7 @@ public class Blue_Close extends OpModeCommand {
                         new FollowPath(r, p.paths.GoTo2),
                         new InstantAction(() -> currentStep = "Art2: Intaking"),
                         new ParallelCommandGroup(
-                                new IntakeCommand(r.intake, false, 3),
+                                new IntakeCommand(r.intake, false, 2),
                                 new FollowPath(r, p.paths.Intake2)
                         ),
                         new InstantAction(() -> currentStep = "Art2: Returning to goal"),
@@ -69,7 +69,7 @@ public class Blue_Close extends OpModeCommand {
                                 new FollowPath(r, p.paths.Shoot2)
                         ),
                         new InstantAction(() -> currentStep = "Art2: Shooting"),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 30),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4),
                         new InstantAction(() -> {
                             currentStep = "COMPLETE";
                             r.shooter.block();

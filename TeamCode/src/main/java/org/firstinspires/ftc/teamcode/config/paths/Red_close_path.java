@@ -11,34 +11,22 @@ import org.firstinspires.ftc.teamcode.config.Robot_camera;
 
 /**
  * FILE: Red_close_path.java
- * PURPOSE: Red Alliance Close Position - Paths
- *
- * Path Names:
- * - Shootpreload: Drive to goal to shoot preload artifact
- * - GoTo1: Drive toward artifact 1
- * - Intake1: Final approach to artifact 1
- * - Shoot1: Return to goal to shoot artifact 1
- * - GoTo2: Drive toward artifact 2
- * - Intake2: Final approach to artifact 2
- * - Shoot2: Return to goal to shoot artifact 2
+ * PURPOSE: Red Alliance Close Position - FIXED HEADINGS
  */
 public class Red_close_path {
 
     public Paths paths;
 
-    // Starting position from Red_Close.pp
-    public Pose startPose = new Pose(106.87567567567567, 135.65405405405406, Math.toRadians(-90));
+    // FIXED: Changed from -90 to 270 to match Blue's orientation
+    public Pose startPose = new Pose(106.87567567567567, 135.65405405405406, Math.toRadians(270));
 
-    // Constructor for Robot (no camera)
     public Red_close_path(Robot r) {
         paths = new Paths(r.f);
     }
 
-    // Constructor for Robot_camera
     public Red_close_path(Robot_camera r) {
         paths = new Paths(r.f);
     }
-
 
     public static class Paths {
         public PathChain Shootpreload;
@@ -51,17 +39,17 @@ public class Red_close_path {
 
         public Paths(Follower follower) {
 
-            // Shoot preload
+            // FIXED: Adjusted heading interpolations to work with 270° start
             Shootpreload = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(106.876, 135.654),
                                     new Pose(106.378, 120.941),
                                     new Pose(102.011, 112.011)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(37))
+                    ).setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(217))
+                    // Changed from -90→37 to 270→217 (same relative turn)
                     .build();
 
-            // GoTo1
             GoTo1 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(102.011, 112.011),
@@ -76,55 +64,50 @@ public class Red_close_path {
                                     new Pose(99.962, 87.122),
                                     new Pose(100.605, 84.065)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(37), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(217), Math.toRadians(180))
                     .build();
 
-            // Intake1
             Intake1 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(100.605, 84.065),
                                     new Pose(128.000, 84.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                     .build();
 
-            // Shoot1
             Shoot1 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(128.000, 84.000),
                                     new Pose(100.703, 93.054),
                                     new Pose(102.011, 112.011)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37))
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(217))
                     .build();
 
-            // GoTo2
             GoTo2 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(102.011, 112.011),
                                     new Pose(84.005, 83.611),
                                     new Pose(102.000, 60.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(37), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(217), Math.toRadians(180))
                     .build();
 
-            // Intake2
             Intake2 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(102.000, 60.000),
                                     new Pose(128.276, 60.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                     .build();
 
-            // Shoot2
             Shoot2 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(128.276, 60.000),
                                     new Pose(91.722, 69.265),
                                     new Pose(102.011, 112.011)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37))
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(217))
                     .build();
         }
     }

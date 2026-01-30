@@ -32,20 +32,20 @@ public class Red_Far extends OpModeCommand {
                                 new InstantAction(() -> r.shooter.unblock()),
                                 new FollowPath(r, p.paths.ShootPreload)
                         ),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 8),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4),
                         new InstantAction(() -> r.shooter.block()),
 
                         // ARTIFACT 1
                         new FollowPath(r, p.paths.GoTo1),
                         new ParallelCommandGroup(
-                                new IntakeCommand(r.intake, false, 3),
+                                new IntakeCommand(r.intake, false, 2),
                                 new FollowPath(r, p.paths.Intake1)
                         ),
                         new ParallelCommandGroup(
                                 new InstantAction(() -> r.shooter.unblock()),
                                 new FollowPath(r, p.paths.Shoot1)
                         ),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 8),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4),
                         new InstantAction(() -> {
                             r.shooter.block();
                             r.shooter.stop();
