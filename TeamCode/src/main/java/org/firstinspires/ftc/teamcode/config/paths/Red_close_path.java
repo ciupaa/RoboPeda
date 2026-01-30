@@ -26,7 +26,7 @@ public class Red_close_path {
 
     public Paths paths;
 
-    // Starting position (mirrored from Blue)
+    // Starting position (mirrored from Blue).
     // -90 degrees = 270 degrees (facing down toward bottom of field)
     public Pose startPose = new Pose(106.87567567567567, 135.65405405405406, Math.toRadians(270));
 
