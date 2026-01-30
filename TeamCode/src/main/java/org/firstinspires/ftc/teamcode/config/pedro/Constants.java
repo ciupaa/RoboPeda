@@ -14,13 +14,14 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-@Config
+@Configurable
 public class Constants {
 
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(9)
             .forwardZeroPowerAcceleration(-38.44246)
             .lateralZeroPowerAcceleration(-54.74851)
+            .centripetalScaling(0.0005)
             //.predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.3, 0.1211,0.0017011))
 
             // Primary PIDs
