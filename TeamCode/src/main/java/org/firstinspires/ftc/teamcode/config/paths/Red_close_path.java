@@ -21,7 +21,7 @@ public class Red_close_path {
 
     // FIXED: Changed from 270° to 90° (270 + 180 = 450 = 90)
     // This makes the robot face UP (toward the top of the field) so it drives FORWARD
-    public Pose startPose = new Pose(106.87567567567567, 135.65405405405406, Math.toRadians(90));
+    public Pose startPose = new Pose(106.87567567567567, 135.65405405405406, Math.toRadians(270));
 
     public Red_close_path(Robot r) {
         paths = new Paths(r.f);
@@ -50,7 +50,7 @@ public class Red_close_path {
                                     new Pose(106.378, 120.941),
                                     new Pose(102.011, 112.011)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(37))
+                    ).setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(37))
                     .build();
 
             // OLD: 217→180  NEW: 37→0 (217+180=37, 180+180=0)
