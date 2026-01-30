@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
  * AUTO SHOOT COMMAND - WITH FAR/CLOSE FAILSAFES
  *
  * Waits for AprilTag to be visible before calculating distance and shooting.
- * If no tag is detected, uses appropriate failsafe based on auto type.
+ * If no tag is detected after timeout, uses appropriate failsafe based on auto type.
  *
  * FAILSAFES:
  * - FAR autos: 1500 velocity, 0.65 angle
@@ -26,19 +26,17 @@ public class AutoShootCommand extends CommandBase {
     private final Intake intake;
     private final Limelight_camera limelight;
     private final double shootDurationSeconds;
-    private final boolean isFarShot;  // NEW: Determines which failsafe to use
+    private final boolean isFarShot;
     private final ElapsedTime timer = new ElapsedTime();
 
-    // PULSE FEEDING STRATEGY (same as TeleOp)
+    // PULSE FEEDING STRATEGY
     private static final double FEED_PULSE_MS = 120;
     private static final double FEED_PAUSE_MS = 100;
     private static final double VELOCITY_DROP_THRESHOLD = 150;
     private static final double MIN_RECOVERY_TIME_MS = 400;
-
-    // VELOCITY READY THRESHOLD
     private static final double VELOCITY_TOLERANCE = 80;
 
-    // TAG DETECTION TIMEOUT - INCREASED from 2.0 to 5.0 seconds
+    // TAG DETECTION TIMEOUT - 5 SECONDS (tunable from Dashboard)
     public static double TAG_WAIT_TIMEOUT_SEC = 5.0;
 
     // FAILSAFE VALUES
@@ -61,7 +59,7 @@ public class AutoShootCommand extends CommandBase {
     private double targetAngle = 0.65;
     private double targetVelocity = 1550;
     private double lastStableVelocity = 0.0;
-    private boolean usedFailsafe = false;  // NEW: Track if failsafe was used
+    private boolean usedFailsafe = false;
 
     private final ElapsedTime feedTimer = new ElapsedTime();
     private final ElapsedTime recoveryTimer = new ElapsedTime();
@@ -98,7 +96,6 @@ public class AutoShootCommand extends CommandBase {
         shootStartTime = 0;
         usedFailsafe = false;
 
-        // Stop everything initially
         intake.stop();
         shooter.stop();
         shooter.block();
@@ -110,17 +107,14 @@ public class AutoShootCommand extends CommandBase {
 
         switch (state) {
             case WAIT_FOR_TAG:
-                // Wait for AprilTag to be detected
                 intake.stop();
                 shooter.stop();
                 shooter.block();
 
                 if (limelight.hasTarget()) {
-                    // Tag detected! Move to next state
                     state = State.CALCULATE_DISTANCE;
                     shootStartTime = now;
                 } else if (tagWaitTimer.seconds() >= TAG_WAIT_TIMEOUT_SEC) {
-                    // Timeout - no tag found, use failsafe
                     usedFailsafe = true;
                     state = State.CALCULATE_DISTANCE;
                     shootStartTime = now;
@@ -129,28 +123,22 @@ public class AutoShootCommand extends CommandBase {
 
             case CALCULATE_DISTANCE:
                 if (!usedFailsafe && limelight.hasTarget()) {
-                    // Camera-based shot
                     double distanceCm = limelight.getDistanceToTarget();
 
                     if (distanceCm > 0) {
-                        // Valid distance - use calculated values
                         ShooterCalculator_camera.ShooterConfig config =
                                 ShooterCalculator_camera.getConfig(distanceCm);
-
                         targetAngle = config.angle;
                         targetVelocity = config.velocity;
                     } else {
-                        // Invalid distance - use failsafe
                         usedFailsafe = true;
                         setFailsafeValues();
                     }
                 } else {
-                    // No tag or timeout - use failsafe
                     usedFailsafe = true;
                     setFailsafeValues();
                 }
 
-                // Set shooter configuration
                 shooter.setAngle(targetAngle);
                 shooter.unblock();
                 shooter.launcher.setVelocity(targetVelocity);
@@ -159,7 +147,6 @@ public class AutoShootCommand extends CommandBase {
                 break;
 
             case WAIT_SPINUP:
-                // Check if we've exceeded total shoot duration
                 if ((now - shootStartTime) >= shootDurationSeconds) {
                     state = State.DONE;
                     return;
@@ -167,7 +154,6 @@ public class AutoShootCommand extends CommandBase {
 
                 intake.stop();
 
-                // Keep settings applied
                 shooter.setAngle(targetAngle);
                 shooter.unblock();
                 shooter.launcher.setVelocity(targetVelocity);
@@ -183,18 +169,15 @@ public class AutoShootCommand extends CommandBase {
                 break;
 
             case PULSE_FEED:
-                // Check if we've exceeded total shoot duration
                 if ((now - shootStartTime) >= shootDurationSeconds) {
                     state = State.DONE;
                     return;
                 }
 
-                // Keep settings applied
                 shooter.setAngle(targetAngle);
                 shooter.unblock();
                 shooter.launcher.setVelocity(targetVelocity);
 
-                // SHORT PULSE
                 if (feedTimer.milliseconds() < FEED_PULSE_MS) {
                     intake.intake();
                 } else {
@@ -203,7 +186,6 @@ public class AutoShootCommand extends CommandBase {
                     state = State.PULSE_PAUSE;
                 }
 
-                // Check for ball launch (velocity drop)
                 double currentVelocity = shooter.getVelocity();
                 boolean velocityDropped = (lastStableVelocity - currentVelocity) > VELOCITY_DROP_THRESHOLD;
 
@@ -217,7 +199,6 @@ public class AutoShootCommand extends CommandBase {
                 break;
 
             case PULSE_PAUSE:
-                // Check if we've exceeded total shoot duration
                 if ((now - shootStartTime) >= shootDurationSeconds) {
                     state = State.DONE;
                     return;
@@ -225,21 +206,17 @@ public class AutoShootCommand extends CommandBase {
 
                 intake.stop();
 
-                // Keep settings applied
                 shooter.setAngle(targetAngle);
                 shooter.unblock();
                 shooter.launcher.setVelocity(targetVelocity);
 
                 double currentVel2 = shooter.getVelocity();
 
-                // Check for delayed detection
                 boolean delayedDrop = (lastStableVelocity - currentVel2) > VELOCITY_DROP_THRESHOLD;
                 if (delayedDrop) {
                     recoveryTimer.reset();
                     state = State.WAIT_RECOVERY;
-                }
-                // Pulse again if no ball detected
-                else if (feedTimer.milliseconds() >= FEED_PAUSE_MS) {
+                } else if (feedTimer.milliseconds() >= FEED_PAUSE_MS) {
                     boolean stillAtSpeed = currentVel2 >= (targetVelocity - VELOCITY_TOLERANCE);
                     if (stillAtSpeed) {
                         feedTimer.reset();
@@ -249,7 +226,6 @@ public class AutoShootCommand extends CommandBase {
                 break;
 
             case WAIT_RECOVERY:
-                // Check if we've exceeded total shoot duration
                 if ((now - shootStartTime) >= shootDurationSeconds) {
                     state = State.DONE;
                     return;
@@ -257,7 +233,6 @@ public class AutoShootCommand extends CommandBase {
 
                 intake.stop();
 
-                // Keep settings applied
                 shooter.setAngle(targetAngle);
                 shooter.unblock();
                 shooter.launcher.setVelocity(targetVelocity);
@@ -269,7 +244,7 @@ public class AutoShootCommand extends CommandBase {
                 if (minTimeElapsed && recoveredSpeed) {
                     lastStableVelocity = recoveredVel;
                     feedTimer.reset();
-                    state = State.PULSE_FEED;  // Continue shooting more balls!
+                    state = State.PULSE_FEED;
                 }
                 break;
 
@@ -279,16 +254,11 @@ public class AutoShootCommand extends CommandBase {
         }
     }
 
-    /**
-     * Set failsafe values based on auto type
-     */
     private void setFailsafeValues() {
         if (isFarShot) {
-            // FAR auto failsafe
             targetAngle = FAR_FAILSAFE_ANGLE;
             targetVelocity = FAR_FAILSAFE_VELOCITY;
         } else {
-            // CLOSE auto failsafe
             targetAngle = CLOSE_FAILSAFE_ANGLE;
             targetVelocity = CLOSE_FAILSAFE_VELOCITY;
         }
@@ -306,9 +276,6 @@ public class AutoShootCommand extends CommandBase {
         shooter.block();
     }
 
-    /**
-     * Check if failsafe was used (for telemetry/debugging)
-     */
     public boolean usedFailsafe() {
         return usedFailsafe;
     }

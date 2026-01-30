@@ -6,7 +6,7 @@ import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 
 import org.firstinspires.ftc.teamcode.config.Robot_camera;
-import org.firstinspires.ftc.teamcode.config.subsystem.AutoShootCommand;
+import org.firstinspires.ftc.teamcode.config.commands.AutoShootCommand;
 import org.firstinspires.ftc.teamcode.config.commands.FollowPath;
 import org.firstinspires.ftc.teamcode.config.commands.IntakeCommand;
 import org.firstinspires.ftc.teamcode.config.paths.Red_Far_Path;
@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.config.util.OpModeCommand;
 public class Red_Far extends OpModeCommand {
 
     Robot_camera r;
+    private String currentStep = "INIT";
 
     @Override
     public void initialize() {
@@ -27,26 +28,33 @@ public class Red_Far extends OpModeCommand {
         schedule(
                 new SequentialCommandGroup(
                         // PRELOAD
+                        new InstantAction(() -> currentStep = "Preload: Prep"),
                         new ParallelCommandGroup(
                                 new InstantAction(() -> r.shooter.setAngle(0.7)),
                                 new InstantAction(() -> r.shooter.unblock()),
                                 new FollowPath(r, p.paths.ShootPreload)
                         ),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4),
+                        new InstantAction(() -> currentStep = "Preload: Shooting"),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, true),  // FAR SHOT
                         new InstantAction(() -> r.shooter.block()),
 
                         // ARTIFACT 1
+                        new InstantAction(() -> currentStep = "Art1: Driving to position"),
                         new FollowPath(r, p.paths.GoTo1),
+                        new InstantAction(() -> currentStep = "Art1: Intaking"),
                         new ParallelCommandGroup(
                                 new IntakeCommand(r.intake, false, 2),
                                 new FollowPath(r, p.paths.Intake1)
                         ),
+                        new InstantAction(() -> currentStep = "Art1: Returning to goal"),
                         new ParallelCommandGroup(
                                 new InstantAction(() -> r.shooter.unblock()),
                                 new FollowPath(r, p.paths.Shoot1)
                         ),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4),
+                        new InstantAction(() -> currentStep = "Art1: Shooting"),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, true),  // FAR SHOT
                         new InstantAction(() -> {
+                            currentStep = "COMPLETE";
                             r.shooter.block();
                             r.shooter.stop();
                             r.intake.stop();
@@ -60,36 +68,36 @@ public class Red_Far extends OpModeCommand {
         super.loop();
         r.periodic();
 
-        // === COMPREHENSIVE TELEMETRY ===
         telemetry.addLine("=== RED FAR AUTO ===");
         telemetry.addData("Runtime", "%.1f sec", getRuntime());
+        telemetry.addData("Current Step", currentStep);
         telemetry.addLine("");
 
-        // Limelight Status
         telemetry.addLine("=== LIMELIGHT (TAG 24) ===");
         if (r.limelight.hasTarget()) {
             double distance = r.limelight.getDistanceToTarget();
             telemetry.addData("Target", "LOCKED");
-            telemetry.addData("Distance", "%.1f cm (%.2f m)", distance, distance/100.0);
+            telemetry.addData("Tag ID", r.limelight.getDetectedTagId());
+            telemetry.addData("Distance", "%.1f cm", distance);
             telemetry.addData("TX", "%.2f deg", r.limelight.getTx());
             telemetry.addData("TY", "%.2f deg", r.limelight.getTy());
 
-            // Show calculated shooter settings
-            org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera.ShooterConfig config =
-                    org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera.getConfig(distance);
-            telemetry.addData("Calc Angle", "%.3f", config.angle);
-            telemetry.addData("Calc Vel", "%.0f", config.velocity);
+            if (distance > 0) {
+                org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera.ShooterConfig config =
+                        org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera.getConfig(distance);
+                telemetry.addData("Calc Angle", "%.3f", config.angle);
+                telemetry.addData("Calc Vel", "%.0f", config.velocity);
+            }
         } else {
             telemetry.addData("Target", "NO TAG 24");
+            telemetry.addData("Failsafe", "FAR (1500 / 0.65)");
         }
 
-        // Shooter Status
         telemetry.addLine("");
         telemetry.addLine("=== SHOOTER ===");
         telemetry.addData("Actual Vel", "%.0f RPM", r.shooter.getVelocity());
         telemetry.addData("Actual Angle", "%.3f", r.shooter.getAngle());
 
-        // Position
         telemetry.addLine("");
         telemetry.addLine("=== POSITION ===");
         telemetry.addData("X", "%.1f", r.f.getPose().getX());

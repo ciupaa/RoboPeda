@@ -6,7 +6,7 @@ import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 
 import org.firstinspires.ftc.teamcode.config.Robot_camera;
-import org.firstinspires.ftc.teamcode.config.subsystem.AutoShootCommand;
+import org.firstinspires.ftc.teamcode.config.commands.AutoShootCommand;
 import org.firstinspires.ftc.teamcode.config.commands.FollowPath;
 import org.firstinspires.ftc.teamcode.config.commands.IntakeCommand;
 import org.firstinspires.ftc.teamcode.config.paths.Blue_close_path;
@@ -35,7 +35,7 @@ public class Blue_Close extends OpModeCommand {
                                 new FollowPath(r, p.paths.Shootpreload)
                         ),
                         new InstantAction(() -> currentStep = "Preload: Shooting"),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, false),  // CLOSE SHOT
                         new InstantAction(() -> r.shooter.block()),
 
                         // ARTIFACT 1
@@ -52,7 +52,7 @@ public class Blue_Close extends OpModeCommand {
                                 new FollowPath(r, p.paths.Shoot1)
                         ),
                         new InstantAction(() -> currentStep = "Art1: Shooting"),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, false),  // CLOSE SHOT
                         new InstantAction(() -> r.shooter.block()),
 
                         // ARTIFACT 2
@@ -69,7 +69,7 @@ public class Blue_Close extends OpModeCommand {
                                 new FollowPath(r, p.paths.Shoot2)
                         ),
                         new InstantAction(() -> currentStep = "Art2: Shooting"),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, false),  // CLOSE SHOT
                         new InstantAction(() -> {
                             currentStep = "COMPLETE";
                             r.shooter.block();
@@ -85,37 +85,36 @@ public class Blue_Close extends OpModeCommand {
         super.loop();
         r.periodic();
 
-        // === COMPREHENSIVE TELEMETRY ===
         telemetry.addLine("=== BLUE CLOSE AUTO ===");
         telemetry.addData("Runtime", "%.1f sec", getRuntime());
         telemetry.addData("Current Step", currentStep);
         telemetry.addLine("");
 
-        // Limelight Status
         telemetry.addLine("=== LIMELIGHT (TAG 20) ===");
         if (r.limelight.hasTarget()) {
             double distance = r.limelight.getDistanceToTarget();
             telemetry.addData("Target", "LOCKED");
-            telemetry.addData("Distance", "%.1f cm (%.2f m)", distance, distance/100.0);
+            telemetry.addData("Tag ID", r.limelight.getDetectedTagId());
+            telemetry.addData("Distance", "%.1f cm", distance);
             telemetry.addData("TX", "%.2f deg", r.limelight.getTx());
             telemetry.addData("TY", "%.2f deg", r.limelight.getTy());
 
-            // Show calculated shooter settings
-            org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera.ShooterConfig config =
-                    org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera.getConfig(distance);
-            telemetry.addData("Calc Angle", "%.3f", config.angle);
-            telemetry.addData("Calc Vel", "%.0f", config.velocity);
+            if (distance > 0) {
+                org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera.ShooterConfig config =
+                        org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera.getConfig(distance);
+                telemetry.addData("Calc Angle", "%.3f", config.angle);
+                telemetry.addData("Calc Vel", "%.0f", config.velocity);
+            }
         } else {
             telemetry.addData("Target", "NO TAG 20");
+            telemetry.addData("Failsafe", "CLOSE (1200 / 0.70)");
         }
 
-        // Shooter Status
         telemetry.addLine("");
         telemetry.addLine("=== SHOOTER ===");
         telemetry.addData("Actual Vel", "%.0f RPM", r.shooter.getVelocity());
         telemetry.addData("Actual Angle", "%.3f", r.shooter.getAngle());
 
-        // Position
         telemetry.addLine("");
         telemetry.addLine("=== POSITION ===");
         telemetry.addData("X", "%.1f", r.f.getPose().getX());

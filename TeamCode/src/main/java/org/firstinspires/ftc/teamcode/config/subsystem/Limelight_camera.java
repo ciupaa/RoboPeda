@@ -1,293 +1,172 @@
 package org.firstinspires.ftc.teamcode.config.subsystem;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.seattlesolvers.solverslib.command.CommandBase;
-
-import org.firstinspires.ftc.teamcode.config.subsystem.Limelight_camera;
-import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
+import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.seattlesolvers.solverslib.command.SubsystemBase;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import java.util.List;
 
 /**
-
- - AUTO SHOOT COMMAND - WITH CAMERA WARMUP & TAG TIMEOUT
- -
- - Flow:
- - 1. CAMERA_WARMUP (1 second) - Let camera initialize
- - 1. WAIT_FOR_TAG (15 seconds max) - Wait for AprilTag detection
- - 1. CALCULATE_DISTANCE - Use tag data to set shooter
- - 1. Shooting sequence - Normal operation
+ * Limelight Vision Subsystem - MEGATAG 3D POSITIONING
+ *
+ * Uses getRobotPoseTargetSpace() for accurate distance measurement
+ * relative to the detected AprilTag.
+ *
+ * MULTI-ALLIANCE SUPPORT:
+ * - Blue: Pipeline 1, Tag 20
+ * - Red: Pipeline 2, Tag 24
  */
 @Config
-public class AutoShootCommand extends CommandBase {
+@Configurable
+public class Limelight_camera extends SubsystemBase {
 
-    private final Shooter shooter;
-    private final Intake intake;
-    private final Limelight_camera limelight;
-    private final double shootDurationSeconds;
-    private final ElapsedTime timer = new ElapsedTime();
+    private final Limelight3A limelight;
+    private LLResult latestResult = null;
 
-    // === TIMING CONFIGURATION ===
+    public final boolean isBlue;
 
-    // Camera warmup time before checking for tags
-    public static double CAMERA_WARMUP_SEC = 1.0;
+    // Diagnostic data
+    private double lastBotposeX = 0;
+    private double lastBotposeY = 0;
+    private double lastBotposeZ = 0;
+    private double lastDistance = -1;
+    private int lastDetectedTagId = -1;
 
-    // How long to wait for tag detection before proceeding
-    public static double TAG_WAIT_TIMEOUT_SEC = 15.0;
+    /**
+     * Constructor
+     * @param hardwareMap Hardware map
+     * @param pipeline Pipeline number (1 for Blue/Tag 20, 2 for Red/Tag 24)
+     * @param isBlueAlliance true for Blue, false for Red
+     */
+    public Limelight_camera(HardwareMap hardwareMap, int pipeline, boolean isBlueAlliance) {
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(pipeline);
+        limelight.start();
 
-    // PULSE FEEDING STRATEGY
-    private static final double FEED_PULSE_MS = 120;
-    private static final double FEED_PAUSE_MS = 100;
-    private static final double VELOCITY_DROP_THRESHOLD = 150;
-    private static final double MIN_RECOVERY_TIME_MS = 400;
-    private static final double VELOCITY_TOLERANCE = 80;
-
-    private enum State {
-        CAMERA_WARMUP,
-        WAIT_FOR_TAG,
-        CALCULATE_DISTANCE,
-        WAIT_SPINUP,
-        PULSE_FEED,
-        PULSE_PAUSE,
-        WAIT_RECOVERY,
-        DONE
-    }
-    private State state = State.CAMERA_WARMUP;
-
-    private double targetAngle = 0.65;
-    private double targetVelocity = 1550;
-    private double lastStableVelocity = 0.0;
-
-    private final ElapsedTime feedTimer = new ElapsedTime();
-    private final ElapsedTime recoveryTimer = new ElapsedTime();
-    private final ElapsedTime warmupTimer = new ElapsedTime();
-    private final ElapsedTime tagWaitTimer = new ElapsedTime();
-    private double shootStartTime = 0;
-
-    public AutoShootCommand(Shooter shooter, Intake intake, Limelight_camera limelight,
-                            double shootDurationSeconds) {
-        this.shooter = shooter;
-        this.intake = intake;
-        this.limelight = limelight;
-        this.shootDurationSeconds = shootDurationSeconds;
-
-
-        addRequirements(shooter, intake);
-
-
+        isBlue = isBlueAlliance;
     }
 
     @Override
-    public void initialize() {
-        timer.reset();
-        feedTimer.reset();
-        recoveryTimer.reset();
-        warmupTimer.reset();
-        tagWaitTimer.reset();
+    public void periodic() {
+        latestResult = limelight.getLatestResult();
 
+        if (latestResult != null && latestResult.isValid()) {
+            // Update botpose
+            Pose3D botpose = latestResult.getBotpose();
+            if (botpose != null) {
+                lastBotposeX = botpose.getPosition().x;
+                lastBotposeY = botpose.getPosition().y;
+                lastBotposeZ = botpose.getPosition().z;
+            }
 
-        state = State.CAMERA_WARMUP;
-        lastStableVelocity = 0.0;
-        shootStartTime = 0;
-
-        intake.stop();
-        shooter.stop();
-        shooter.block();
-
-
+            // Track detected tag ID for debugging
+            List<LLResultTypes.FiducialResult> fiducials = latestResult.getFiducialResults();
+            if (!fiducials.isEmpty()) {
+                lastDetectedTagId = fiducials.get(0).getFiducialId();
+            } else {
+                lastDetectedTagId = -1;
+            }
+        } else {
+            lastDetectedTagId = -1;
+        }
     }
 
-    @Override
-    public void execute() {
-        double now = timer.seconds();
+    public boolean hasTarget() {
+        return latestResult != null && latestResult.isValid();
+    }
 
+    public double getTx() {
+        if (!hasTarget()) return 0.0;
+        return latestResult.getTx();
+    }
 
-        switch (state) {
-            case CAMERA_WARMUP:
-                // Wait 1 second for camera to initialize
-                intake.stop();
+    public double getTy() {
+        if (!hasTarget()) return 0.0;
+        return latestResult.getTy();
+    }
 
-                if (warmupTimer.seconds() >= CAMERA_WARMUP_SEC) {
-                    // Camera is ready - move to tag detection
-                    state = State.WAIT_FOR_TAG;
-                }
-                break;
+    public double getTa() {
+        if (!hasTarget()) return 0.0;
+        return latestResult.getTa();
+    }
 
-            case WAIT_FOR_TAG:
-                // Wait up to 15 seconds for AprilTag detection
-                intake.stop();
+    /**
+     * Calculates distance using MegaTag (BotPose) but RELATIVE to the tag.
+     * This fixes coordinate system errors.
+     */
+    public double getDistanceMegaTag() {
+        if (!hasTarget()) return -1.0;
 
-                if (limelight.hasTarget()) {
-                    // Tag detected! Skip timeout and proceed
-                    state = State.CALCULATE_DISTANCE;
-                    shootStartTime = now;
-                } else if (tagWaitTimer.seconds() >= TAG_WAIT_TIMEOUT_SEC) {
-                    // Timeout reached - proceed anyway (will use existing fallback logic)
-                    state = State.CALCULATE_DISTANCE;
-                    shootStartTime = now;
-                }
-                break;
+        List<LLResultTypes.FiducialResult> fiducials = latestResult.getFiducialResults();
 
-            case CALCULATE_DISTANCE:
-                // Use Limelight to calculate optimal angle and velocity
-                if (limelight.hasTarget()) {
-                    double distanceCm = limelight.getDistanceToTarget();
+        if (!fiducials.isEmpty()) {
+            LLResultTypes.FiducialResult tag = fiducials.get(0);
 
-                    if (distanceCm > 0) {
-                        ShooterCalculator_camera.ShooterConfig config =
-                                ShooterCalculator_camera.getConfig(distanceCm);
-                        targetAngle = config.angle;
-                        targetVelocity = config.velocity;
-                    } else {
-                        // Fallback (existing logic unchanged)
-                        targetAngle = 0.7;
-                        targetVelocity = 1200;
-                    }
-                } else {
-                    // No tag - use fallback (existing logic unchanged)
-                    targetAngle = 0.7;
-                    targetVelocity = 1200;
-                }
+            // Get Robot Pose relative to the Tag (Target Space)
+            // X = Horizontal offset (left/right)
+            // Y = Vertical offset (up/down)
+            // Z = Forward distance (depth)
+            Pose3D robotPoseTargetSpace = tag.getRobotPoseTargetSpace();
 
-                // Set shooter configuration
-                shooter.setAngle(targetAngle);
-                shooter.unblock();
-                shooter.launcher.setVelocity(targetVelocity);
+            double x = robotPoseTargetSpace.getPosition().x;
+            double z = robotPoseTargetSpace.getPosition().z;
 
-                state = State.WAIT_SPINUP;
-                break;
+            // Calculate 2D ground distance (hypotenuse of X and Z)
+            double distanceMeters = Math.hypot(x, z);
 
-            case WAIT_SPINUP:
-                // Check if we've exceeded total shoot duration
-                if ((now - shootStartTime) >= shootDurationSeconds) {
-                    state = State.DONE;
-                    return;
-                }
-
-                intake.stop();
-
-                // Keep settings applied
-                shooter.setAngle(targetAngle);
-                shooter.unblock();
-                shooter.launcher.setVelocity(targetVelocity);
-
-                double currentVel = shooter.getVelocity();
-                boolean atSpeed = currentVel >= (targetVelocity - VELOCITY_TOLERANCE);
-
-                if (atSpeed) {
-                    lastStableVelocity = currentVel;
-                    feedTimer.reset();
-                    state = State.PULSE_FEED;
-                }
-                break;
-
-            case PULSE_FEED:
-                // Check if we've exceeded total shoot duration
-                if ((now - shootStartTime) >= shootDurationSeconds) {
-                    state = State.DONE;
-                    return;
-                }
-
-                // Keep settings applied
-                shooter.setAngle(targetAngle);
-                shooter.unblock();
-                shooter.launcher.setVelocity(targetVelocity);
-
-                // SHORT PULSE
-                if (feedTimer.milliseconds() < FEED_PULSE_MS) {
-                    intake.intake();
-                } else {
-                    intake.stop();
-                    feedTimer.reset();
-                    state = State.PULSE_PAUSE;
-                }
-
-                // Check for ball launch (velocity drop)
-                double currentVelocity = shooter.getVelocity();
-                boolean velocityDropped = (lastStableVelocity - currentVelocity) > VELOCITY_DROP_THRESHOLD;
-
-                if (velocityDropped) {
-                    intake.stop();
-                    recoveryTimer.reset();
-                    state = State.WAIT_RECOVERY;
-                } else if (currentVelocity >= (targetVelocity - VELOCITY_TOLERANCE)) {
-                    lastStableVelocity = currentVelocity;
-                }
-                break;
-
-            case PULSE_PAUSE:
-                // Check if we've exceeded total shoot duration
-                if ((now - shootStartTime) >= shootDurationSeconds) {
-                    state = State.DONE;
-                    return;
-                }
-
-                intake.stop();
-
-                // Keep settings applied
-                shooter.setAngle(targetAngle);
-                shooter.unblock();
-                shooter.launcher.setVelocity(targetVelocity);
-
-                double currentVel2 = shooter.getVelocity();
-
-                // Check for delayed detection
-                boolean delayedDrop = (lastStableVelocity - currentVel2) > VELOCITY_DROP_THRESHOLD;
-                if (delayedDrop) {
-                    recoveryTimer.reset();
-                    state = State.WAIT_RECOVERY;
-                }
-                // Pulse again if no ball detected
-                else if (feedTimer.milliseconds() >= FEED_PAUSE_MS) {
-                    boolean stillAtSpeed = currentVel2 >= (targetVelocity - VELOCITY_TOLERANCE);
-                    if (stillAtSpeed) {
-                        feedTimer.reset();
-                        state = State.PULSE_FEED;
-                    }
-                }
-                break;
-
-            case WAIT_RECOVERY:
-                // Check if we've exceeded total shoot duration
-                if ((now - shootStartTime) >= shootDurationSeconds) {
-                    state = State.DONE;
-                    return;
-                }
-
-                intake.stop();
-
-                // Keep settings applied
-                shooter.setAngle(targetAngle);
-                shooter.unblock();
-                shooter.launcher.setVelocity(targetVelocity);
-
-                double recoveredVel = shooter.getVelocity();
-                boolean minTimeElapsed = recoveryTimer.milliseconds() >= MIN_RECOVERY_TIME_MS;
-                boolean recoveredSpeed = recoveredVel >= (targetVelocity - VELOCITY_TOLERANCE);
-
-                if (minTimeElapsed && recoveredSpeed) {
-                    lastStableVelocity = recoveredVel;
-                    feedTimer.reset();
-                    state = State.PULSE_FEED;  // Continue shooting more balls!
-                }
-                break;
-
-            case DONE:
-                intake.stop();
-                break;
+            return distanceMeters * 100.0; // Convert to CM
         }
 
-
+        return -1.0;
     }
 
-    @Override
-    public boolean isFinished() {
-        return state == State.DONE;
+    /**
+     * Main distance getter.
+     */
+    public double getDistanceToTarget() {
+        double distCm = getDistanceMegaTag();
+
+        // Validity Checks
+        if (distCm < 0 || distCm > 1000) {
+            lastDistance = -1;
+            return -1.0;
+        }
+
+        lastDistance = distCm;
+        return distCm;
     }
 
-    @Override
-    public void end(boolean interrupted) {
-        intake.stop();
-        shooter.stop();
-        shooter.block();
+    // Diagnostic getters
+    public double getLastBotposeX() { return lastBotposeX; }
+    public double getLastBotposeY() { return lastBotposeY; }
+    public double getLastBotposeZ() { return lastBotposeZ; }
+    public double getLastDistance() { return lastDistance; }
+    public int getDetectedTagId() { return lastDetectedTagId; }
+
+    public double getDistanceToTargetMeters() {
+        double cm = getDistanceToTarget();
+        if (cm < 0) return -1.0;
+        return cm / 100.0;
+    }
+
+    public boolean isInRange(double minDistanceCm, double maxDistanceCm) {
+        double distance = getDistanceToTarget();
+        return distance > 0 && distance >= minDistanceCm && distance <= maxDistanceCm;
+    }
+
+    public boolean isAligned(double tolerance) {
+        return hasTarget() && Math.abs(getTx()) < tolerance;
+    }
+
+    public void setPipeline(int pipeline) {
+        limelight.pipelineSwitch(pipeline);
+    }
+
+    public void stop() {
+        limelight.stop();
     }
 }
