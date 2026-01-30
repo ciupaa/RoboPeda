@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmode.TeleOp;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -20,7 +21,7 @@ import org.firstinspires.ftc.teamcode.config.util.Alliance;
  *
  * Dashboard URL: http://192.168.43.1:8080
  */
-@Configurable
+@Config
 @TeleOp(name = "Shooter Tuner", group = "Tuning")
 public class ShooterTuner extends OpMode {
 

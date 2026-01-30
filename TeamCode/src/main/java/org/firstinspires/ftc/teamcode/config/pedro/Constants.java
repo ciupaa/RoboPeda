@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.config.pedro;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
@@ -20,6 +21,7 @@ public class Constants {
             .mass(9)
             .forwardZeroPowerAcceleration(-38.44246)
             .lateralZeroPowerAcceleration(-54.74851)
+            .centripetalScaling(0.0005)
             //.predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.3, 0.1211,0.0017011))
 
             // Primary PIDs
