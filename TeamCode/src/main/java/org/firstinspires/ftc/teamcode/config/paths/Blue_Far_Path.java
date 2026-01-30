@@ -13,6 +13,8 @@ import org.firstinspires.ftc.teamcode.config.Robot_camera;
  * FILE: Blue_Far_Path.java
  * PURPOSE: Blue Alliance Far Position - Paths
  *
+ * UPDATED ANGLES: 109° → 111°
+ *
  * Path Names:
  * - ShootPreload: Drive to goal to shoot preload artifact
  * - GoTo1: Drive toward artifact 1
@@ -45,23 +47,25 @@ public class Blue_Far_Path {
         public Paths(Follower follower) {
 
             // ShootPreload - Curve to goal
+            // UPDATED: 109° → 111°
             ShootPreload = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(32.649, 8.195),
                                     new Pose(44.897, 19.665),
                                     new Pose(61.449, 14.205)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(109))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(111))
                     .build();
 
             // GoTo1 - Curve toward artifact 1
+            // UPDATED: 109° → 111°
             GoTo1 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(61.449, 14.205),
                                     new Pose(58.311, 28.992),
                                     new Pose(44.000, 35.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(109), Math.toRadians(180))
+                    ).setLinearHeadingInterpolation(Math.toRadians(111), Math.toRadians(180))
                     .build();
 
             // Intake1 - Straight line to artifact 1
@@ -74,13 +78,14 @@ public class Blue_Far_Path {
                     .build();
 
             // Shoot1 - Return to goal
+            // UPDATED: 109° → 111°
             Shoot1 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(15.135, 35.000),
                                     new Pose(48.719, 36.862),
                                     new Pose(61.449, 14.205)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(109))
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(111))
                     .build();
         }
     }

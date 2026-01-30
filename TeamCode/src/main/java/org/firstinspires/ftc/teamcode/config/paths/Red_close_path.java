@@ -48,7 +48,7 @@ public class Red_close_path {
                             new BezierCurve(
                                     new Pose(106.876, 135.654),
                                     new Pose(106.378, 120.941),
-                                    new Pose(102.011, 112.011)
+                                    new Pose(96.589073089701, 110.73525249169434)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(37))
                     .build();
@@ -56,7 +56,7 @@ public class Red_close_path {
             // OLD: 217→180  NEW: 37→0 (217+180=37, 180+180=0)
             GoTo1 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(102.011, 112.011),
+                                    new Pose(96.589073089701, 110.73525249169434),
                                     new Pose(103.014, 111.305),
                                     new Pose(100.083, 107.181),
                                     new Pose(104.367, 104.382),
@@ -85,7 +85,7 @@ public class Red_close_path {
                             new BezierCurve(
                                     new Pose(128.000, 84.000),
                                     new Pose(100.703, 93.054),
-                                    new Pose(102.011, 112.011)
+                                    new Pose(96.589073089701, 110.73525249169434)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37))
                     .build();
@@ -93,7 +93,7 @@ public class Red_close_path {
             // OLD: 217→180  NEW: 37→0
             GoTo2 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(102.011, 112.011),
+                                    new Pose(96.589073089701, 110.73525249169434),
                                     new Pose(84.005, 83.611),
                                     new Pose(102.000, 60.000)
                             )
@@ -114,7 +114,7 @@ public class Red_close_path {
                             new BezierCurve(
                                     new Pose(128.276, 60.000),
                                     new Pose(91.722, 69.265),
-                                    new Pose(102.011, 112.011)
+                                    new Pose(96.589073089701, 110.73525249169434)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37))
                     .build();

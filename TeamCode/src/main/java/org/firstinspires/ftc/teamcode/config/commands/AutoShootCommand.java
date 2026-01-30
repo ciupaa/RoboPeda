@@ -9,10 +9,10 @@ import org.firstinspires.ftc.teamcode.config.subsystem.Shooter;
 import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
 
 /**
- * AUTO SHOOT COMMAND - FIXED FOR MULTIPLE BALLS
+ * AUTO SHOOT COMMAND - ONLY SHOOTS WHEN TAG IS DETECTED
  *
- * Shoots continuously for specified duration using pulse feeding strategy.
- * Identical to TeleOp shooting logic but time-limited.
+ * Waits for AprilTag to be visible before calculating distance and shooting.
+ * If no tag is detected, safely ends without shooting.
  */
 public class AutoShootCommand extends CommandBase {
 
@@ -31,7 +31,11 @@ public class AutoShootCommand extends CommandBase {
     // VELOCITY READY THRESHOLD
     private static final double VELOCITY_TOLERANCE = 80;
 
+    // TAG DETECTION TIMEOUT
+    private static final double TAG_WAIT_TIMEOUT_SEC = 2.0;
+
     private enum State {
+        WAIT_FOR_TAG,
         CALCULATE_DISTANCE,
         WAIT_SPINUP,
         PULSE_FEED,
@@ -39,7 +43,7 @@ public class AutoShootCommand extends CommandBase {
         WAIT_RECOVERY,
         DONE
     }
-    private State state = State.CALCULATE_DISTANCE;
+    private State state = State.WAIT_FOR_TAG;
 
     private double targetAngle = 0.65;
     private double targetVelocity = 1550;
@@ -47,6 +51,7 @@ public class AutoShootCommand extends CommandBase {
 
     private final ElapsedTime feedTimer = new ElapsedTime();
     private final ElapsedTime recoveryTimer = new ElapsedTime();
+    private final ElapsedTime tagWaitTimer = new ElapsedTime();
     private double shootStartTime = 0;
 
     public AutoShootCommand(Shooter shooter, Intake intake, Limelight_camera limelight,
@@ -64,40 +69,50 @@ public class AutoShootCommand extends CommandBase {
         timer.reset();
         feedTimer.reset();
         recoveryTimer.reset();
-        state = State.CALCULATE_DISTANCE;
+        tagWaitTimer.reset();
+        state = State.WAIT_FOR_TAG;
         lastStableVelocity = 0.0;
-        shootStartTime = timer.seconds();
+        shootStartTime = 0;
+
+        // Stop everything initially
+        intake.stop();
+        shooter.stop();
+        shooter.block();
     }
 
     @Override
     public void execute() {
         double now = timer.seconds();
 
-        // Check if we've exceeded total shoot duration
-        if ((now - shootStartTime) >= shootDurationSeconds) {
-            state = State.DONE;
-            return;
-        }
-
         switch (state) {
+            case WAIT_FOR_TAG:
+                // Wait for AprilTag to be detected
+                intake.stop();
+                shooter.stop();
+                shooter.block();
+
+                if (limelight.hasTarget()) {
+                    // Tag detected! Move to next state
+                    state = State.CALCULATE_DISTANCE;
+                    shootStartTime = now;
+                } else if (tagWaitTimer.seconds() >= TAG_WAIT_TIMEOUT_SEC) {
+                    // Timeout - no tag found, abort
+                    state = State.DONE;
+                }
+                break;
+
             case CALCULATE_DISTANCE:
                 // Use Limelight to calculate optimal angle and velocity
-                if (limelight.hasTarget()) {
-                    double distanceCm = limelight.getDistanceToTarget();
+                double distanceCm = limelight.getDistanceToTarget();
 
-                    if (distanceCm > 0) {
-                        ShooterCalculator_camera.ShooterConfig config =
-                                ShooterCalculator_camera.getConfig(distanceCm);
+                if (distanceCm > 0) {
+                    ShooterCalculator_camera.ShooterConfig config =
+                            ShooterCalculator_camera.getConfig(distanceCm);
 
-                        targetAngle = config.angle;
-                        targetVelocity = config.velocity;
-                    } else {
-                        // Fallback
-                        targetAngle = 0.7;
-                        targetVelocity = 1200;
-                    }
+                    targetAngle = config.angle;
+                    targetVelocity = config.velocity;
                 } else {
-                    // No target - use default
+                    // Fallback
                     targetAngle = 0.7;
                     targetVelocity = 1200;
                 }
@@ -111,6 +126,12 @@ public class AutoShootCommand extends CommandBase {
                 break;
 
             case WAIT_SPINUP:
+                // Check if we've exceeded total shoot duration
+                if ((now - shootStartTime) >= shootDurationSeconds) {
+                    state = State.DONE;
+                    return;
+                }
+
                 intake.stop();
 
                 // Keep settings applied
@@ -129,6 +150,12 @@ public class AutoShootCommand extends CommandBase {
                 break;
 
             case PULSE_FEED:
+                // Check if we've exceeded total shoot duration
+                if ((now - shootStartTime) >= shootDurationSeconds) {
+                    state = State.DONE;
+                    return;
+                }
+
                 // Keep settings applied
                 shooter.setAngle(targetAngle);
                 shooter.unblock();
@@ -157,6 +184,12 @@ public class AutoShootCommand extends CommandBase {
                 break;
 
             case PULSE_PAUSE:
+                // Check if we've exceeded total shoot duration
+                if ((now - shootStartTime) >= shootDurationSeconds) {
+                    state = State.DONE;
+                    return;
+                }
+
                 intake.stop();
 
                 // Keep settings applied
@@ -183,6 +216,12 @@ public class AutoShootCommand extends CommandBase {
                 break;
 
             case WAIT_RECOVERY:
+                // Check if we've exceeded total shoot duration
+                if ((now - shootStartTime) >= shootDurationSeconds) {
+                    state = State.DONE;
+                    return;
+                }
+
                 intake.stop();
 
                 // Keep settings applied
