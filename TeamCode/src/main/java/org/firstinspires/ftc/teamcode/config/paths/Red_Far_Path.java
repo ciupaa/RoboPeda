@@ -46,7 +46,7 @@ public class Red_Far_Path {
 
         public Paths(Follower follower) {
 
-            // ShootPreload - Curve to goal
+            // ShootPreload - Curve to goal nn
             // UPDATED: 71° → 73°
             ShootPreload = follower.pathBuilder().addPath(
                             new BezierCurve(
