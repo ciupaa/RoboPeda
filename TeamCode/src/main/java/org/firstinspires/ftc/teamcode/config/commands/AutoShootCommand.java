@@ -71,10 +71,10 @@ import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
   this.intake = intake;
   this.limelight = limelight;
   this.shootDurationSeconds = shootDurationSeconds;
-  
-  ```
+
+
    addRequirements(shooter, intake);
-  ```
+
   
   }
   
@@ -102,7 +102,7 @@ import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
   public void execute() {
   double now = timer.seconds();
   
-  ```
+
    switch (state) {
        case CAMERA_WARMUP:
            // Wait 1 second for camera to initialize
@@ -277,7 +277,6 @@ import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
            intake.stop();
            break;
    }
-  ```
   
   }
   
