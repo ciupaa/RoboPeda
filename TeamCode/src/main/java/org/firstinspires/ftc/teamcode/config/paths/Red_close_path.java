@@ -27,7 +27,7 @@ public class Red_close_path {
     public Paths paths;
 
     // Starting position from Red_Close.pp
-    public Pose startPose = new Pose(106.87567567567567, 135.65405405405406, Math.toRadians(90));
+    public Pose startPose = new Pose(106.87567567567567, 135.65405405405406, Math.toRadians(-90));
 
     // Constructor for Robot (no camera)
     public Red_close_path(Robot r) {

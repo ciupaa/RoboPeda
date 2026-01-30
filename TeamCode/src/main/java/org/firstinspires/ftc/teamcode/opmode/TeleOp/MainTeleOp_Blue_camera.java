@@ -36,6 +36,9 @@ public class MainTeleOp_Blue_camera extends OpMode {
     private boolean intakeActive = false;
     private boolean lastX = false;
 
+    // BLOCKER STATE TRACKING
+    private boolean lastShootHeld = false;
+
     private static final double MANUAL_ANGLE = 0.70;
     private static final double MANUAL_VELOCITY = 1200;
     private static final double IDLE_PRESET = 1.0;
@@ -86,21 +89,30 @@ public class MainTeleOp_Blue_camera extends OpMode {
         boolean leftBumper = gamepad1.left_bumper;
 
         // --- INTAKE TOGGLE LOGIC ---
-        // Detect rising edge (button pressed now, but wasn't before)
         if (gamepad1.x && !lastX) {
-            intakeActive = !intakeActive; // Toggle state
+            intakeActive = !intakeActive;
         }
-        lastX = gamepad1.x; // Update history
+        lastX = gamepad1.x;
 
         // Safety: If we start shooting or resetting, force intake OFF
         if (rightBumper || leftBumper || gamepad1.b || gamepad1.y) {
             intakeActive = false;
         }
 
+        // BLOCKER CONTROL - Only toggle on button press/release
+        boolean shootHeld = rightBumper || leftBumper;
+        if (shootHeld && !lastShootHeld) {
+            // Button just pressed - OPEN blocker
+            r.shooter.unblock();
+        } else if (!shootHeld && lastShootHeld) {
+            // Button just released - CLOSE blocker
+            r.shooter.block();
+        }
+        lastShootHeld = shootHeld;
+
         // --- STATE MACHINE ---
 
         if (rightBumper && r.limelight.hasTarget()) {
-            // ... (Auto Shoot Logic) ...
             double tx = r.limelight.getTx();
             double dt = pidTimer.seconds();
             pidTimer.reset();
@@ -151,13 +163,11 @@ public class MainTeleOp_Blue_camera extends OpMode {
 
                 r.shooter.stop();
                 r.intake.stop();
-                r.shooter.block();
                 shootState = ShootState.WAIT_SPINUP;
             }
         }
 
         else if (leftBumper) {
-            // ... (Manual Shoot Logic) ...
             autoShootState = AutoShootState.IDLE;
             alignedRumbled = false;
             lastTxError = 0;
@@ -170,8 +180,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
             executeShootingSequence(MANUAL_VELOCITY_THRESHOLD);
         }
 
-        // --- INTAKE MODE (Activated by Toggle) ---
-        else if (intakeActive) { // CHANGED: Checks the toggle variable instead of holding X
+        else if (intakeActive) {
             autoShootState = AutoShootState.IDLE;
             shootState = ShootState.WAIT_SPINUP;
             alignedRumbled = false;
@@ -181,7 +190,6 @@ public class MainTeleOp_Blue_camera extends OpMode {
 
             r.shooter.setAngle(IDLE_PRESET);
             r.shooter.stop();
-            r.shooter.block();
             r.intake.intake();
 
             double currentAmps = r.intake.getCurrentDraw();
@@ -190,15 +198,12 @@ public class MainTeleOp_Blue_camera extends OpMode {
                     gamepad1.rumble(500);
                     jamRumbled = true;
                 }
-                // Optional: Auto-reverse if jammed
-                // r.intake.outtakeSlow();
             } else {
                 jamRumbled = false;
             }
         }
 
         else if (gamepad1.y) {
-            // ... (Outtake / Reset Logic) ...
             autoShootState = AutoShootState.IDLE;
             shootState = ShootState.WAIT_SPINUP;
             jamRumbled = false;
@@ -210,11 +215,9 @@ public class MainTeleOp_Blue_camera extends OpMode {
             r.shooter.setAngle(IDLE_PRESET);
             r.intake.outtakeSlow();
             r.shooter.stop();
-            r.shooter.block();
         }
 
         else {
-            // ... (Idle Logic) ...
             autoShootState = AutoShootState.IDLE;
             shootState = ShootState.WAIT_SPINUP;
             jamRumbled = false;
@@ -225,8 +228,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
 
             r.shooter.setAngle(IDLE_PRESET);
             r.shooter.stop();
-            r.intake.stop(); // Stops intake when toggle is OFF
-            r.shooter.block();
+            r.intake.stop();
 
             if (gamepad1.dpad_left) {
                 r.shooter.reverse();
@@ -241,10 +243,9 @@ public class MainTeleOp_Blue_camera extends OpMode {
         updateTelemetry();
     }
 
-    // ... (Existing Methods: executeShootingSequence, updateTelemetry) ...
     private void executeShootingSequence(double velocityThreshold) {
         r.shooter.setAngle(currentTargetAngle);
-        r.shooter.unblock();
+        // BLOCKER IS ALREADY CONTROLLED BY BUTTON PRESS/RELEASE - DON'T COMMAND IT HERE
         r.shooter.launcher.setVelocity(currentTargetVel);
 
         double currentVel = r.shooter.getVelocity();
@@ -307,7 +308,6 @@ public class MainTeleOp_Blue_camera extends OpMode {
 
     private void updateTelemetry() {
         telemetry.addLine("=== BLUE (TAG 20) ===");
-        // ... (Existing Telemetry) ...
         if (r.limelight.hasTarget()) {
             double distance = r.limelight.getDistanceToTarget();
             telemetry.addLine("=== MEGATAG POSITION ===");
@@ -334,7 +334,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
         telemetry.addLine("");
         telemetry.addData("Mode", gamepad1.right_bumper ? "AUTO" :
                 gamepad1.left_bumper ? "MANUAL" : "IDLE");
-        telemetry.addData("Intake", intakeActive ? "ON (Toggle)" : "OFF"); // Added status
+        telemetry.addData("Intake", intakeActive ? "ON (Toggle)" : "OFF");
         telemetry.addData("Vel", "%.0f / %.0f", r.shooter.getVelocity(), currentTargetVel);
         telemetry.addData("Angle", "%.3f", currentTargetAngle);
         telemetry.update();

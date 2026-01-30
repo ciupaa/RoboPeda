@@ -59,7 +59,7 @@ public class Blue_Close extends OpModeCommand {
                         ),
 
                         // STEP 2: Shoot preload artifact (distance-based, 3 seconds max)
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 15),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 30),
 
                         // STEP 3: Close blocker after shooting
                         new InstantAction(() -> r.shooter.block()),
@@ -84,7 +84,7 @@ public class Blue_Close extends OpModeCommand {
                         ),
 
                         // STEP 7: Shoot artifact 1 (distance-based, 3 seconds max)
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 15),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 30),
 
                         // STEP 8: Close blocker after shooting
                         new InstantAction(() -> r.shooter.block()),
@@ -107,7 +107,7 @@ public class Blue_Close extends OpModeCommand {
                         ),
 
                         // STEP 12: Shoot artifact 2 (distance-based, 3 seconds max)
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 15),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 30),
 
                         // STEP 13: Close blocker and safe state
                         new InstantAction(() -> {

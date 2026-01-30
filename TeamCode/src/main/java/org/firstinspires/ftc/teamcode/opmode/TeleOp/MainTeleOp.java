@@ -16,6 +16,8 @@ import org.firstinspires.ftc.teamcode.config.subsystem.Intake;
  * - LEFT BUMPER: Low shot (0.70 angle, 1200 velocity)
  * - X: Intake
  * - Y: Outtake
+ *
+ * FIXED: Blocker only opens/closes on button press/release, not constantly
  */
 @TeleOp(name = "Main TeleOp", group = "Competition")
 public class MainTeleOp extends OpMode {
@@ -42,6 +44,9 @@ public class MainTeleOp extends OpMode {
     // VELOCITY READY THRESHOLD - DIFFERENT FOR HIGH vs LOW
     private static final double HIGH_VELOCITY_THRESHOLD = 80;
     private static final double LOW_VELOCITY_THRESHOLD = 120;
+
+    // BLOCKER STATE TRACKING
+    private boolean lastShootHeld = false;
 
     private enum ShootState {
         WAIT_SPINUP,
@@ -89,6 +94,16 @@ public class MainTeleOp extends OpMode {
         boolean lowHeld = gamepad1.left_bumper;
         boolean shootHeld = highHeld || lowHeld;
 
+        // BLOCKER CONTROL - Only toggle on button press/release
+        if (shootHeld && !lastShootHeld) {
+            // Button just pressed - OPEN blocker
+            r.shooter.unblock();
+        } else if (!shootHeld && lastShootHeld) {
+            // Button just released - CLOSE blocker
+            r.shooter.block();
+        }
+        lastShootHeld = shootHeld;
+
         if (shootHeld) {
             jamRumbled = false;
 
@@ -96,7 +111,6 @@ public class MainTeleOp extends OpMode {
             currentTargetVel = highHeld ? 1550 : 1200;
 
             r.shooter.setAngle(targetAngle);
-            r.shooter.unblock();
 
             if (highHeld) r.shooter.spinHigh();
             else r.shooter.spinLow();
@@ -166,7 +180,6 @@ public class MainTeleOp extends OpMode {
             shootState = ShootState.WAIT_SPINUP;
             r.shooter.setAngle(IDLE_PRESET);
             r.shooter.stop();
-            r.shooter.block();
             r.intake.intake();
 
             double currentAmps = r.intake.getCurrentDraw();
@@ -188,7 +201,6 @@ public class MainTeleOp extends OpMode {
             r.shooter.setAngle(IDLE_PRESET);
             r.intake.outtakeSlow();
             r.shooter.stop();
-            r.shooter.block();
         }
 
         // IDLE MODE
@@ -198,7 +210,6 @@ public class MainTeleOp extends OpMode {
             r.shooter.setAngle(IDLE_PRESET);
             r.shooter.stop();
             r.intake.stop();
-            r.shooter.block();
 
             if (gamepad1.dpad_left) {
                 r.shooter.reverse();
