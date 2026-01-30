@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
-@Configurable
+@Config
 public class Intake extends SubsystemBase {
     private final DcMotorEx intakeMotor;
     public static double JAM_THRESHOLD = 6.0;

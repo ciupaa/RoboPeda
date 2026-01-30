@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.config.subsystem;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
@@ -9,7 +10,7 @@ import com.seattlesolvers.solverslib.command.SubsystemBase;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import java.util.List;
 
-@Configurable
+@Config
 public class Limelight_camera extends SubsystemBase {
 
     private final Limelight3A limelight;

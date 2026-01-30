@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmode.TeleOp;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -10,7 +11,7 @@ import org.firstinspires.ftc.teamcode.config.util.Alliance;
 import org.firstinspires.ftc.teamcode.config.subsystem.Intake;
 import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
 
-@Configurable
+@Config
 @TeleOp(name = "MainTeleOp_Red_camera", group = "Competition")
 public class MainTeleOp_Red_camera extends OpMode {
 

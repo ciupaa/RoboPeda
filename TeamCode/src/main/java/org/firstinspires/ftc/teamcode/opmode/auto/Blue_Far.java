@@ -58,7 +58,7 @@ public class Blue_Far extends OpModeCommand {
                         ),
 
                         // STEP 2: Shoot preload artifact (distance-based, 5 seconds max)
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 5),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 8),
 
                         // STEP 3: Close blocker after shooting
                         new InstantAction(() -> r.shooter.block()),
@@ -70,7 +70,7 @@ public class Blue_Far extends OpModeCommand {
 
                         // STEP 5: Arrive at artifact 1 + intake for 4 seconds
                         new ParallelCommandGroup(
-                                new IntakeCommand(r.intake, false, 4.0),  // Intake for 4 seconds
+                                new IntakeCommand(r.intake, false, 3),  // Intake for 4 seconds
                                 new FollowPath(r, p.paths.Intake1)         // Continue to exact position
                         ),
 
@@ -83,7 +83,7 @@ public class Blue_Far extends OpModeCommand {
                         ),
 
                         // STEP 7: Shoot artifact 1 (distance-based, 5 seconds max)
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 5),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 8),
 
                         // STEP 8: Close blocker and safe state
                         new InstantAction(() -> {
