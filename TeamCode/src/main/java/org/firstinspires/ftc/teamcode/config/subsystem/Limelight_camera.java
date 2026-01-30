@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.config.subsystem;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
@@ -9,6 +10,7 @@ import com.seattlesolvers.solverslib.command.SubsystemBase;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import java.util.List;
 
+@Config
 @Configurable
 public class Limelight_camera extends SubsystemBase {
 
@@ -22,6 +24,7 @@ public class Limelight_camera extends SubsystemBase {
     private double lastBotposeY = 0;
     private double lastBotposeZ = 0;
     private double lastDistance = -1;
+    private int lastDetectedTagId = -1;  // NEW: Track which tag is detected
 
     public Limelight_camera(HardwareMap hardwareMap, int pipeline, boolean isBlueAlliance) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -36,12 +39,23 @@ public class Limelight_camera extends SubsystemBase {
         latestResult = limelight.getLatestResult();
 
         if (latestResult != null && latestResult.isValid()) {
+            // Update botpose
             Pose3D botpose = latestResult.getBotpose();
             if (botpose != null) {
                 lastBotposeX = botpose.getPosition().x;
                 lastBotposeY = botpose.getPosition().y;
                 lastBotposeZ = botpose.getPosition().z;
             }
+
+            // NEW: Track detected tag ID for debugging
+            List<LLResultTypes.FiducialResult> fiducials = latestResult.getFiducialResults();
+            if (!fiducials.isEmpty()) {
+                lastDetectedTagId = fiducials.get(0).getFiducialId();
+            } else {
+                lastDetectedTagId = -1;
+            }
+        } else {
+            lastDetectedTagId = -1;
         }
     }
 
@@ -119,6 +133,9 @@ public class Limelight_camera extends SubsystemBase {
     public double getLastBotposeZ() { return lastBotposeZ; }
     public double getLastDistance() { return lastDistance; }
 
+    // NEW: Get detected tag ID
+    public int getDetectedTagId() { return lastDetectedTagId; }
+
     public double getDistanceToTargetMeters() {
         double cm = getDistanceToTarget();
         if (cm < 0) return -1.0;
@@ -132,5 +149,14 @@ public class Limelight_camera extends SubsystemBase {
 
     public boolean isAligned(double tolerance) {
         return hasTarget() && Math.abs(getTx()) < tolerance;
+    }
+
+    // NEW: Manual pipeline switch (for debugging)
+    public void setPipeline(int pipeline) {
+        limelight.pipelineSwitch(pipeline);
+    }
+
+    public void stop() {
+        limelight.stop();
     }
 }
