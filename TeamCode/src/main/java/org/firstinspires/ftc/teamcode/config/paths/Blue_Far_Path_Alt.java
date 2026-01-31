@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.config.Robot_camera;
  * FILE: Blue_Far_Path_Alt.java
  * PURPOSE: Blue Alliance Far Position - Alternative Shooting Position
  *
- * SHOOTING POSITION: (60.28, 18.49, 120°)
+ * SHOOTING POSITION: (60.28, 18.49, 118°)
  *
  * Path Names:
  * - ShootPreload: Drive to goal to shoot preload artifact
@@ -55,7 +55,7 @@ public class Blue_Far_Path_Alt {
                                     new Pose(44.897, 19.665),
                                     new Pose(60.28143243243244, 18.486081081081085)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(120))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(118))
                     .build();
 
             // GoTo1 - Curve toward artifact 1
@@ -65,7 +65,7 @@ public class Blue_Far_Path_Alt {
                                     new Pose(58.311, 28.992),
                                     new Pose(44.000, 35.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(120), Math.toRadians(180))
+                    ).setLinearHeadingInterpolation(Math.toRadians(118), Math.toRadians(180))
                     .build();
 
             // Intake1 - Straight line to artifact 1
@@ -84,7 +84,7 @@ public class Blue_Far_Path_Alt {
                                     new Pose(48.719, 36.862),
                                     new Pose(60.28143243243244, 18.486081081081085)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(120))
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(118))
                     .build();
 
             // OutofTriangle - Exit triangle after final shot
@@ -93,7 +93,7 @@ public class Blue_Far_Path_Alt {
                                     new Pose(60.28143243243244, 18.486081081081085),
                                     new Pose(56.000, 36.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(120), Math.toRadians(120))
+                    ).setLinearHeadingInterpolation(Math.toRadians(118), Math.toRadians(118))
                     .build();
         }
     }

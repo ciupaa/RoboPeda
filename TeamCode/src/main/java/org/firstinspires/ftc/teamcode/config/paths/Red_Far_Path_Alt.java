@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.config.Robot_camera;
  * FILE: Red_Far_Path_Alt.java
  * PURPOSE: Red Alliance Far Position - Alternative Shooting Position
  *
- * SHOOTING POSITION: (83.72, 18.49, 60°)
+ * SHOOTING POSITION: (83.72, 18.49, 63°)
  *
  * Path Names:
  * - ShootPreload: Drive to goal to shoot preload artifact
@@ -52,27 +52,27 @@ public class Red_Far_Path_Alt {
             ShootPreload = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(101.9, 8.195),
-                                    new Pose(99.103, 19.660),
-                                    new Pose(83.71856756756756, 18.486081081081085)
+                                    new Pose(99.103, 19.663),
+                                    new Pose(83.71856756756756, 18.486381081081085)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(60))
+                    ).setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(63))
                     .build();
 
             // GoTo1 - Curve toward artifact 1
             GoTo1 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(83.71856756756756, 18.486081081081085),
+                                    new Pose(83.71856756756756, 18.486381081081085),
                                     new Pose(85.689, 28.992),
                                     new Pose(100.000, 35.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(60), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(63), Math.toRadians(0))
                     .build();
 
             // Intake1 - Straight line to artifact 1
             Intake1 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(100.000, 35.000),
-                                    new Pose(128.860, 35.000)
+                                    new Pose(128.863, 35.000)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                     .build();
@@ -80,20 +80,20 @@ public class Red_Far_Path_Alt {
             // Shoot1 - Return to goal
             Shoot1 = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(128.860, 35.000),
-                                    new Pose(95.281, 36.862),
-                                    new Pose(83.71856756756756, 18.486081081081085)
+                                    new Pose(128.863, 35.000),
+                                    new Pose(95.281, 36.863),
+                                    new Pose(83.71856756756756, 18.486381081081085)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(60))
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(63))
                     .build();
 
             // OutOfTriangle - Exit triangle after final shot
             OutOfTriangle = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(83.71856756756756, 18.486081081081085),
+                                    new Pose(83.71856756756756, 18.486381081081085),
                                     new Pose(97.103, 36.195)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(60), Math.toRadians(60))
+                    ).setLinearHeadingInterpolation(Math.toRadians(63), Math.toRadians(63))
                     .build();
         }
     }
