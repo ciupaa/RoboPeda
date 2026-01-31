@@ -70,6 +70,13 @@ public class Red_close extends OpModeCommand {
                         ),
                         new InstantAction(() -> currentStep = "Art2: Shooting"),
                         new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, false),  // CLOSE SHOT
+                        new InstantAction(() -> r.shooter.block()),
+
+                        // EXIT PATH - NEW
+                        new InstantAction(() -> currentStep = "Exit: Moving away from goal"),
+                        new FollowPath(r, p.paths.ExitPath),
+
+                        // COMPLETE
                         new InstantAction(() -> {
                             currentStep = "COMPLETE";
                             r.shooter.block();

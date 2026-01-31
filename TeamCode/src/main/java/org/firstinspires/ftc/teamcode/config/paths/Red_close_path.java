@@ -11,7 +11,9 @@ import org.firstinspires.ftc.teamcode.config.Robot_camera;
 
 /**
  * FILE: Red_close_path.java
- * PURPOSE: Red Alliance Close Position - MIRRORED FROM BLUE
+ * PURPOSE: Red Alliance Close Position - Paths
+ *
+ * UPDATED: New starting position (110.6, 135.654) and added exit path
  *
  * Path Names:
  * - Shootpreload: Drive to goal to shoot preload artifact
@@ -21,14 +23,14 @@ import org.firstinspires.ftc.teamcode.config.Robot_camera;
  * - GoTo2: Drive toward artifact 2
  * - Intake2: Final approach to artifact 2
  * - Shoot2: Return to goal to shoot artifact 2
+ * - ExitPath: Move away from goal after final shot
  */
 public class Red_close_path {
 
     public Paths paths;
 
-    // Starting position (mirrored from Blue).
-    // -90 degrees = 270 degrees (facing down toward bottom of field)
-    public Pose startPose = new Pose(106.87567567567567, 135.65405405405406, Math.toRadians(270));
+    // UPDATED: Starting position changed from (106.876, 135.654) to (110.6, 135.654)
+    public Pose startPose = new Pose(110.6, 135.65405405405406, Math.toRadians(270));
 
     public Red_close_path(Robot r) {
         paths = new Paths(r.f);
@@ -46,22 +48,21 @@ public class Red_close_path {
         public PathChain GoTo2;
         public PathChain Intake2;
         public PathChain Shoot2;
+        public PathChain ExitPath;  // NEW: Exit path after final shot
 
         public Paths(Follower follower) {
 
             // Shootpreload - Curve to goal
-            // -90° → 37° (270° → 37°)
             Shootpreload = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(106.876, 135.654),
-                                    new Pose(106.378, 120.941),
+                                    new Pose(110.6, 135.654),
+                                    new Pose(97.037, 123.471),
                                     new Pose(97.22694684385382, 107.38641528239202)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(37))
                     .build();
 
             // GoTo1 - Curve toward artifact 1
-            // 37° → 0°
             GoTo1 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(97.22694684385382, 107.38641528239202),
@@ -80,7 +81,6 @@ public class Red_close_path {
                     .build();
 
             // Intake1 - Straight line to artifact 1
-            // 0° → 0°
             Intake1 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(100.605, 84.065),
@@ -90,7 +90,6 @@ public class Red_close_path {
                     .build();
 
             // Shoot1 - Return to goal
-            // 0° → 37°
             Shoot1 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(128.000, 84.000),
@@ -101,7 +100,6 @@ public class Red_close_path {
                     .build();
 
             // GoTo2 - Curve toward artifact 2
-            // 37° → 0°
             GoTo2 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(97.22694684385382, 107.38641528239202),
@@ -112,7 +110,6 @@ public class Red_close_path {
                     .build();
 
             // Intake2 - Straight line to artifact 2
-            // 0° → 0°
             Intake2 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(102.000, 60.000),
@@ -122,7 +119,6 @@ public class Red_close_path {
                     .build();
 
             // Shoot2 - Return to goal
-            // 0° → 37°
             Shoot2 = follower.pathBuilder().addPath(
                             new BezierCurve(
                                     new Pose(128.276, 60.000),
@@ -130,6 +126,16 @@ public class Red_close_path {
                                     new Pose(97.22694684385382, 107.38641528239202)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37))
+                    .build();
+
+            // ExitPath - NEW: Exit away from goal after final shot
+            ExitPath = follower.pathBuilder().addPath(
+                            new BezierCurve(
+                                    new Pose(97.22694684385382, 107.38641528239202),
+                                    new Pose(110.938, 95.577),
+                                    new Pose(127.427, 95.659)
+                            )
+                    ).setTangentHeadingInterpolation()
                     .build();
         }
     }
