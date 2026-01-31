@@ -43,7 +43,7 @@ public class Blue_Close extends OpModeCommand {
                         new FollowPath(r, p.paths.GoTo1),
                         new InstantAction(() -> currentStep = "Art1: Intaking"),
                         new ParallelCommandGroup(
-                                new IntakeCommand(r.intake, false, 2),
+                                new IntakeCommand(r.intake, false, 2.5),
                                 new FollowPath(r, p.paths.Intake1)
                         ),
                         new InstantAction(() -> currentStep = "Art1: Returning to goal"),
