@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.config.Robot_camera;
  * - GoTo1: Drive toward artifact 1
  * - Intake1: Final approach to artifact 1
  * - Shoot1: Return to goal to shoot artifact 1
+ * - OutOfTriangle: Exit triangle after final shot
  */
 public class Red_Far_Path {
 
@@ -41,6 +42,7 @@ public class Red_Far_Path {
         public PathChain GoTo1;
         public PathChain Intake1;
         public PathChain Shoot1;
+        public PathChain OutOfTriangle;
 
         public Paths(Follower follower) {
 
@@ -81,6 +83,15 @@ public class Red_Far_Path {
                                     new Pose(78.8537027027027, 18.486081081081085)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(60))
+                    .build();
+
+            // OutOfTriangle - Exit triangle after final shot
+            OutOfTriangle = follower.pathBuilder().addPath(
+                            new BezierLine(
+                                    new Pose(78.8537027027027, 18.486081081081085),
+                                    new Pose(97.103, 36.195)
+                            )
+                    ).setLinearHeadingInterpolation(Math.toRadians(60), Math.toRadians(60))
                     .build();
         }
     }

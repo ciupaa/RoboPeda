@@ -53,6 +53,13 @@ public class Red_Far extends OpModeCommand {
                         ),
                         new InstantAction(() -> currentStep = "Art1: Shooting"),
                         new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, true),  // FAR SHOT
+                        new InstantAction(() -> r.shooter.block()),
+
+                        // EXIT TRIANGLE
+                        new InstantAction(() -> currentStep = "Exit: Moving out of triangle"),
+                        new FollowPath(r, p.paths.OutOfTriangle),
+
+                        // COMPLETE
                         new InstantAction(() -> {
                             currentStep = "COMPLETE";
                             r.shooter.block();
