@@ -10,10 +10,10 @@ import org.firstinspires.ftc.teamcode.config.subsystem.Shooter;
 import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
 
 /**
- * AUTO SHOOT COMMAND - WITH FAR/CLOSE FAILSAFES
+ * AUTO SHOOT COMMAND - FAST VERSION
  *
- * Waits for AprilTag to be visible before calculating distance and shooting.
- * If no tag is detected after timeout, uses appropriate failsafe based on auto type.
+ * Checks for AprilTag IMMEDIATELY and shoots without delay.
+ * If no tag is detected, uses appropriate failsafe based on auto type.
  *
  * FAILSAFES:
  * - FAR autos: 1500 velocity, 0.65 angle
@@ -36,9 +36,6 @@ public class AutoShootCommand extends CommandBase {
     private static final double MIN_RECOVERY_TIME_MS = 400;
     private static final double VELOCITY_TOLERANCE = 80;
 
-    // TAG DETECTION TIMEOUT - 5 SECONDS (tunable from Dashboard)
-    public static double TAG_WAIT_TIMEOUT_SEC = 5.0;
-
     // FAILSAFE VALUES
     private static final double FAR_FAILSAFE_ANGLE = 0.65;
     private static final double FAR_FAILSAFE_VELOCITY = 1500;
@@ -46,15 +43,13 @@ public class AutoShootCommand extends CommandBase {
     private static final double CLOSE_FAILSAFE_VELOCITY = 1200;
 
     private enum State {
-        WAIT_FOR_TAG,
-        CALCULATE_DISTANCE,
         WAIT_SPINUP,
         PULSE_FEED,
         PULSE_PAUSE,
         WAIT_RECOVERY,
         DONE
     }
-    private State state = State.WAIT_FOR_TAG;
+    private State state = State.WAIT_SPINUP;
 
     private double targetAngle = 0.65;
     private double targetVelocity = 1550;
@@ -63,7 +58,6 @@ public class AutoShootCommand extends CommandBase {
 
     private final ElapsedTime feedTimer = new ElapsedTime();
     private final ElapsedTime recoveryTimer = new ElapsedTime();
-    private final ElapsedTime tagWaitTimer = new ElapsedTime();
     private double shootStartTime = 0;
 
     /**
@@ -90,76 +84,61 @@ public class AutoShootCommand extends CommandBase {
         timer.reset();
         feedTimer.reset();
         recoveryTimer.reset();
-        tagWaitTimer.reset();
-        state = State.WAIT_FOR_TAG;
+        state = State.WAIT_SPINUP;
         lastStableVelocity = 0.0;
-        shootStartTime = 0;
+        shootStartTime = timer.seconds();
         usedFailsafe = false;
 
+        // IMMEDIATELY check for tag and calculate - NO WAITING!
+        if (limelight.hasTarget()) {
+            double distanceCm = limelight.getDistanceToTarget();
+
+            if (distanceCm > 0) {
+                // Use camera distance
+                ShooterCalculator_camera.ShooterConfig config =
+                        ShooterCalculator_camera.getConfig(distanceCm);
+                targetAngle = config.angle;
+                targetVelocity = config.velocity;
+                usedFailsafe = false;
+            } else {
+                // Invalid distance - use failsafe
+                setFailsafeValues();
+                usedFailsafe = true;
+            }
+        } else {
+            // No tag visible - use failsafe immediately
+            setFailsafeValues();
+            usedFailsafe = true;
+        }
+
+        // Start spinning up immediately
+        shooter.setAngle(targetAngle);
+        shooter.unblock();
+        shooter.launcher.setVelocity(targetVelocity);
         intake.stop();
-        shooter.stop();
-        shooter.block();
     }
 
     @Override
     public void execute() {
         double now = timer.seconds();
 
+        // Check if we've exceeded total shoot duration
+        if ((now - shootStartTime) >= shootDurationSeconds) {
+            state = State.DONE;
+            return;
+        }
+
+        // Keep shooter running at target
+        shooter.setAngle(targetAngle);
+        shooter.unblock();
+        shooter.launcher.setVelocity(targetVelocity);
+
+        double currentVel = shooter.getVelocity();
+        boolean atSpeed = currentVel >= (targetVelocity - VELOCITY_TOLERANCE);
+
         switch (state) {
-            case WAIT_FOR_TAG:
-                intake.stop();
-                shooter.stop();
-                shooter.block();
-
-                if (limelight.hasTarget()) {
-                    state = State.CALCULATE_DISTANCE;
-                    shootStartTime = now;
-                } else if (tagWaitTimer.seconds() >= TAG_WAIT_TIMEOUT_SEC) {
-                    usedFailsafe = true;
-                    state = State.CALCULATE_DISTANCE;
-                    shootStartTime = now;
-                }
-                break;
-
-            case CALCULATE_DISTANCE:
-                if (!usedFailsafe && limelight.hasTarget()) {
-                    double distanceCm = limelight.getDistanceToTarget();
-
-                    if (distanceCm > 0) {
-                        ShooterCalculator_camera.ShooterConfig config =
-                                ShooterCalculator_camera.getConfig(distanceCm);
-                        targetAngle = config.angle;
-                        targetVelocity = config.velocity;
-                    } else {
-                        usedFailsafe = true;
-                        setFailsafeValues();
-                    }
-                } else {
-                    usedFailsafe = true;
-                    setFailsafeValues();
-                }
-
-                shooter.setAngle(targetAngle);
-                shooter.unblock();
-                shooter.launcher.setVelocity(targetVelocity);
-
-                state = State.WAIT_SPINUP;
-                break;
-
             case WAIT_SPINUP:
-                if ((now - shootStartTime) >= shootDurationSeconds) {
-                    state = State.DONE;
-                    return;
-                }
-
                 intake.stop();
-
-                shooter.setAngle(targetAngle);
-                shooter.unblock();
-                shooter.launcher.setVelocity(targetVelocity);
-
-                double currentVel = shooter.getVelocity();
-                boolean atSpeed = currentVel >= (targetVelocity - VELOCITY_TOLERANCE);
 
                 if (atSpeed) {
                     lastStableVelocity = currentVel;
@@ -169,15 +148,6 @@ public class AutoShootCommand extends CommandBase {
                 break;
 
             case PULSE_FEED:
-                if ((now - shootStartTime) >= shootDurationSeconds) {
-                    state = State.DONE;
-                    return;
-                }
-
-                shooter.setAngle(targetAngle);
-                shooter.unblock();
-                shooter.launcher.setVelocity(targetVelocity);
-
                 if (feedTimer.milliseconds() < FEED_PULSE_MS) {
                     intake.intake();
                 } else {
@@ -186,39 +156,25 @@ public class AutoShootCommand extends CommandBase {
                     state = State.PULSE_PAUSE;
                 }
 
-                double currentVelocity = shooter.getVelocity();
-                boolean velocityDropped = (lastStableVelocity - currentVelocity) > VELOCITY_DROP_THRESHOLD;
-
+                boolean velocityDropped = (lastStableVelocity - currentVel) > VELOCITY_DROP_THRESHOLD;
                 if (velocityDropped) {
                     intake.stop();
                     recoveryTimer.reset();
                     state = State.WAIT_RECOVERY;
-                } else if (currentVelocity >= (targetVelocity - VELOCITY_TOLERANCE)) {
-                    lastStableVelocity = currentVelocity;
+                } else if (atSpeed) {
+                    lastStableVelocity = currentVel;
                 }
                 break;
 
             case PULSE_PAUSE:
-                if ((now - shootStartTime) >= shootDurationSeconds) {
-                    state = State.DONE;
-                    return;
-                }
-
                 intake.stop();
 
-                shooter.setAngle(targetAngle);
-                shooter.unblock();
-                shooter.launcher.setVelocity(targetVelocity);
-
-                double currentVel2 = shooter.getVelocity();
-
-                boolean delayedDrop = (lastStableVelocity - currentVel2) > VELOCITY_DROP_THRESHOLD;
+                boolean delayedDrop = (lastStableVelocity - currentVel) > VELOCITY_DROP_THRESHOLD;
                 if (delayedDrop) {
                     recoveryTimer.reset();
                     state = State.WAIT_RECOVERY;
                 } else if (feedTimer.milliseconds() >= FEED_PAUSE_MS) {
-                    boolean stillAtSpeed = currentVel2 >= (targetVelocity - VELOCITY_TOLERANCE);
-                    if (stillAtSpeed) {
+                    if (atSpeed) {
                         feedTimer.reset();
                         state = State.PULSE_FEED;
                     }
@@ -226,23 +182,13 @@ public class AutoShootCommand extends CommandBase {
                 break;
 
             case WAIT_RECOVERY:
-                if ((now - shootStartTime) >= shootDurationSeconds) {
-                    state = State.DONE;
-                    return;
-                }
-
                 intake.stop();
 
-                shooter.setAngle(targetAngle);
-                shooter.unblock();
-                shooter.launcher.setVelocity(targetVelocity);
-
-                double recoveredVel = shooter.getVelocity();
                 boolean minTimeElapsed = recoveryTimer.milliseconds() >= MIN_RECOVERY_TIME_MS;
-                boolean recoveredSpeed = recoveredVel >= (targetVelocity - VELOCITY_TOLERANCE);
+                boolean recoveredSpeed = currentVel >= (targetVelocity - VELOCITY_TOLERANCE);
 
                 if (minTimeElapsed && recoveredSpeed) {
-                    lastStableVelocity = recoveredVel;
+                    lastStableVelocity = currentVel;
                     feedTimer.reset();
                     state = State.PULSE_FEED;
                 }
