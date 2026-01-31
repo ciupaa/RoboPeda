@@ -26,7 +26,7 @@ public class Blue_Far_Path {
     public Paths paths;
 
     // Starting position from Blue_Far_Path.pp
-    public Pose startPose = new Pose(32.648648648648646, 8.194594594594609, Math.toRadians(90));
+    public Pose startPose = new Pose(42.3, 8.194594594594609, Math.toRadians(90));
 
     // Constructor for Robot (no camera)
     public Blue_Far_Path(Robot r) {
@@ -50,7 +50,7 @@ public class Blue_Far_Path {
             // UPDATED: 109° → 120°
             ShootPreload = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(32.649, 8.195),
+                                    new Pose(42.3, 8.194594594594609),
                                     new Pose(44.897, 19.665),
                                     new Pose(65.1462972972973, 18.486081081081085)
                             )

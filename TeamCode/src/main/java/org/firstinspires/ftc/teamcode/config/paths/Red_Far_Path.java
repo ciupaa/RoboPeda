@@ -24,7 +24,7 @@ public class Red_Far_Path {
     public Paths paths;
 
     // Starting position from Red_Far_Path.pp
-    public Pose startPose = new Pose(111.35135135135135, 8.194594594594609, Math.toRadians(90));
+    public Pose startPose = new Pose(101.9, 8.195, Math.toRadians(90));
 
     // Constructor for Robot (no camera)
     public Red_Far_Path(Robot r) {
@@ -47,7 +47,7 @@ public class Red_Far_Path {
             // ShootPreload - Curve to goal
             ShootPreload = follower.pathBuilder().addPath(
                             new BezierCurve(
-                                    new Pose(111.351, 8.195),
+                                    new Pose(101.9, 8.195),
                                     new Pose(99.103, 19.660),
                                     new Pose(78.8537027027027, 18.486081081081085)
                             )
