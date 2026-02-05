@@ -36,36 +36,37 @@ public class Red_Far_Alt extends OpModeCommand {
                         ),
                         new InstantAction(() -> currentStep = "Preload: Shooting"),
                         new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, true),  // FAR SHOT
-                        new InstantAction(() -> r.shooter.block()),
+                        new InstantAction(() -> r.shooter.block())
+
 
                         // ARTIFACT 1
-                        new InstantAction(() -> currentStep = "Art1: Driving to position"),
-                        new FollowPath(r, p.paths.GoTo1),
-                        new InstantAction(() -> currentStep = "Art1: Intaking"),
-                        new ParallelCommandGroup(
-                                new IntakeCommand(r.intake, false, 2),
-                                new FollowPath(r, p.paths.Intake1)
-                        ),
-                        new InstantAction(() -> currentStep = "Art1: Returning to goal"),
-                        new ParallelCommandGroup(
-                                new InstantAction(() -> r.shooter.unblock()),
-                                new FollowPath(r, p.paths.Shoot1)
-                        ),
-                        new InstantAction(() -> currentStep = "Art1: Shooting"),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, true),  // FAR SHOT
-                        new InstantAction(() -> r.shooter.block()),
-
-                        // EXIT TRIANGLE
-                        new InstantAction(() -> currentStep = "Exit: Moving out of triangle"),
-                        new FollowPath(r, p.paths.OutOfTriangle),
-
-                        // COMPLETE
-                        new InstantAction(() -> {
-                            currentStep = "COMPLETE";
-                            r.shooter.block();
-                            r.shooter.stop();
-                            r.intake.stop();
-                        })
+//                        new InstantAction(() -> currentStep = "Art1: Driving to position"),
+//                        new FollowPath(r, p.paths.GoTo1),
+//                        new InstantAction(() -> currentStep = "Art1: Intaking"),
+//                        new ParallelCommandGroup(
+//                                new IntakeCommand(r.intake, false, 2),
+//                                new FollowPath(r, p.paths.Intake1)
+//                        ),
+//                        new InstantAction(() -> currentStep = "Art1: Returning to goal"),
+//                        new ParallelCommandGroup(
+//                                new InstantAction(() -> r.shooter.unblock()),
+//                                new FollowPath(r, p.paths.Shoot1)
+//                        ),
+//                        new InstantAction(() -> currentStep = "Art1: Shooting"),
+//                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, true),  // FAR SHOT
+//                        new InstantAction(() -> r.shooter.block()),
+//
+//                        // EXIT TRIANGLE
+//                        new InstantAction(() -> currentStep = "Exit: Moving out of triangle"),
+//                        new FollowPath(r, p.paths.OutOfTriangle),
+//
+//                        // COMPLETE
+//                        new InstantAction(() -> {
+//                            currentStep = "COMPLETE";
+//                            r.shooter.block();
+//                            r.shooter.stop();
+//                            r.intake.stop();
+//                        })
                 )
         );
     }
