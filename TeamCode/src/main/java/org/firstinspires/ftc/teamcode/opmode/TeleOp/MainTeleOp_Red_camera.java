@@ -39,9 +39,9 @@ public class MainTeleOp_Red_camera extends OpMode {
     // BLOCKER STATE TRACKING
     private boolean lastShootHeld = false;
 
-    private static final double MANUAL_ANGLE = 0.70;
-    private static final double MANUAL_VELOCITY = 1200;
-    private static final double IDLE_PRESET = 1.0;
+    private static final double MANUAL_ANGLE = 0.84;    // ← UPDATED!
+    private static final double MANUAL_VELOCITY = 1140; // ← UPDATED!
+    private static final double IDLE_PRESET = 0.9;
 
     private static final double FEED_PULSE_MS = 120;
     private static final double FEED_PAUSE_MS = 100;
@@ -108,10 +108,8 @@ public class MainTeleOp_Red_camera extends OpMode {
         // BLOCKER CONTROL - Only toggle on button press/release
         boolean shootHeld = rightBumper || leftBumper;
         if (shootHeld && !lastShootHeld) {
-            // Button just pressed - OPEN blocker
             r.shooter.unblock();
         } else if (!shootHeld && lastShootHeld) {
-            // Button just released - CLOSE blocker
             r.shooter.block();
         }
         lastShootHeld = shootHeld;
@@ -251,7 +249,6 @@ public class MainTeleOp_Red_camera extends OpMode {
 
     private void executeShootingSequence(double velocityThreshold) {
         r.shooter.setAngle(currentTargetAngle);
-        // BLOCKER IS ALREADY CONTROLLED BY BUTTON PRESS/RELEASE - DON'T COMMAND IT HERE
         r.shooter.launcher.setVelocity(currentTargetVel);
 
         double currentVel = r.shooter.getVelocity();
@@ -313,7 +310,6 @@ public class MainTeleOp_Red_camera extends OpMode {
     }
 
     private void updateTelemetry() {
-
         telemetry.addLine("=== RED (TAG 24) ===");
         if (r.limelight.hasTarget()) {
             double distance = r.limelight.getDistanceToTarget();
@@ -340,7 +336,7 @@ public class MainTeleOp_Red_camera extends OpMode {
         }
         telemetry.addLine("");
         telemetry.addData("Mode", gamepad1.right_bumper ? "AUTO" :
-                gamepad1.left_bumper ? "MANUAL" : "IDLE");
+                gamepad1.left_bumper ? "MANUAL (1140)" : "IDLE");  // ← UPDATED!
         telemetry.addData("Intake", intakeActive ? "ON (Toggle)" : "OFF");
         telemetry.addData("Vel", "%.0f / %.0f", r.shooter.getVelocity(), currentTargetVel);
         telemetry.addData("Angle", "%.3f", currentTargetAngle);

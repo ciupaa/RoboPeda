@@ -16,8 +16,8 @@ import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
  * If no tag is detected, uses appropriate failsafe based on auto type.
  *
  * FAILSAFES:
- * - FAR autos: 1500 velocity, 0.65 angle
- * - CLOSE autos: 1200 velocity, 0.70 angle
+ * - FAR autos: 1500 velocity, 0.8 angle
+ * - CLOSE autos: 1140 velocity, 0.84 angle ← UPDATED!
  */
 @Config
 public class AutoShootCommand extends CommandBase {
@@ -37,10 +37,10 @@ public class AutoShootCommand extends CommandBase {
     private static final double VELOCITY_TOLERANCE = 80;
 
     // FAILSAFE VALUES
-    private static final double FAR_FAILSAFE_ANGLE = 0.65;
-    private static final double FAR_FAILSAFE_VELOCITY = 1500;
-    private static final double CLOSE_FAILSAFE_ANGLE = 0.70;
-    private static final double CLOSE_FAILSAFE_VELOCITY = 1200;
+    private static final double FAR_FAILSAFE_ANGLE = 0.8;
+    private static final double FAR_FAILSAFE_VELOCITY = 1630;
+    private static final double CLOSE_FAILSAFE_ANGLE = 0.84;   // ← UPDATED!
+    private static final double CLOSE_FAILSAFE_VELOCITY = 1140; // ← UPDATED!
 
     private enum State {
         WAIT_SPINUP,
@@ -51,7 +51,7 @@ public class AutoShootCommand extends CommandBase {
     }
     private State state = State.WAIT_SPINUP;
 
-    private double targetAngle = 0.65;
+    private double targetAngle = 0.8;
     private double targetVelocity = 1550;
     private double lastStableVelocity = 0.0;
     private boolean usedFailsafe = false;
@@ -66,7 +66,7 @@ public class AutoShootCommand extends CommandBase {
      * @param intake Intake subsystem
      * @param limelight Limelight camera
      * @param shootDurationSeconds Total time to run shooting sequence
-     * @param isFarShot true for FAR autos (1500/0.65), false for CLOSE autos (1200/0.70)
+     * @param isFarShot true for FAR autos (1500/0.8), false for CLOSE autos (1140/0.84)
      */
     public AutoShootCommand(Shooter shooter, Intake intake, Limelight_camera limelight,
                             double shootDurationSeconds, boolean isFarShot) {

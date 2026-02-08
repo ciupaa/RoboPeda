@@ -13,11 +13,9 @@ import org.firstinspires.ftc.teamcode.config.subsystem.Intake;
  *
  * Controls:
  * - RIGHT BUMPER: High shot (0.65 angle, 1550 velocity)
- * - LEFT BUMPER: Low shot (0.70 angle, 1200 velocity)
+ * - LEFT BUMPER: Low shot (0.84 angle, 1140 velocity) ← UPDATED!
  * - X: Intake
  * - Y: Outtake
- *
- * FIXED: Blocker only opens/closes on button press/release, not constantly
  */
 @TeleOp(name = "Main TeleOp", group = "Competition")
 public class MainTeleOp extends OpMode {
@@ -31,9 +29,9 @@ public class MainTeleOp extends OpMode {
     private boolean jamRumbled = false;
 
     // YOUR WORKING PRESETS
-    private static final double HIGH_PRESET = 0.65;  // Far shot - 1550 velocity
-    private static final double LOW_PRESET = 0.70;   // Close shot - 1200 velocity
-    private static final double IDLE_PRESET = 1.0;   // Safe position
+    private static final double HIGH_PRESET = 0.8;   // Far shot - 1550 velocity
+    private static final double LOW_PRESET = 0.84;    // Close shot - 1140 velocity ← UPDATED!
+    private static final double IDLE_PRESET = 0.9;    // Safe position
 
     // PULSE FEEDING STRATEGY
     private static final double FEED_PULSE_MS = 120;
@@ -65,7 +63,8 @@ public class MainTeleOp extends OpMode {
         r.shooter.block();
 
         telemetry.addData("Status", "Initialized");
-        telemetry.addData("Mode", "FASTER Close Range");
+        telemetry.addData("Mode", "UPDATED Close Range");
+        telemetry.addLine("Left: 0.84 / 1140");
     }
 
     @Override
@@ -77,6 +76,7 @@ public class MainTeleOp extends OpMode {
         telemetry.addLine("Mario e cel mai slab(bun) driver");
         telemetry.addLine("Cristi e cel mai autist(extraordinar) coach");
         telemetry.addLine("Acest robot a fost programar de Cristi, Alex si Ciupa, 3 fraieri");
+
         // =========================================================
         // DRIVING
         // =========================================================
@@ -101,10 +101,8 @@ public class MainTeleOp extends OpMode {
 
         // BLOCKER CONTROL - Only toggle on button press/release
         if (shootHeld && !lastShootHeld) {
-            // Button just pressed - OPEN blocker
             r.shooter.unblock();
         } else if (!shootHeld && lastShootHeld) {
-            // Button just released - CLOSE blocker
             r.shooter.block();
         }
         lastShootHeld = shootHeld;
@@ -113,12 +111,12 @@ public class MainTeleOp extends OpMode {
             jamRumbled = false;
 
             double targetAngle = highHeld ? HIGH_PRESET : LOW_PRESET;
-            currentTargetVel = highHeld ? 1550 : 1200;
+            currentTargetVel = highHeld ? 1630 : 1140;  // ← UPDATED!
 
             r.shooter.setAngle(targetAngle);
 
             if (highHeld) r.shooter.spinHigh();
-            else r.shooter.spinLow();
+            else r.shooter.launcher.setVelocity(1140);  // ← UPDATED!
 
             double currentVel = r.shooter.getVelocity();
 
@@ -232,13 +230,12 @@ public class MainTeleOp extends OpMode {
         telemetry.addLine("---");
         telemetry.addData("Blocker", shootHeld ? "OPEN" : "CLOSED");
         if (shootHeld) {
-            String mode = highHeld ? "HIGH (1550)" : "LOW (1200 FAST)";
+            String mode = highHeld ? "HIGH (1550)" : "LOW (1140)";  // ← UPDATED!
             telemetry.addData("Mode", mode);
-            telemetry.addData("Angle", highHeld ? "0.65" : "0.70");
+            telemetry.addData("Angle", highHeld ? "0.65" : "0.84");  // ← UPDATED!
         } else {
             telemetry.addData("Mode", "IDLE");
         }
-
 
         telemetry.update();
     }
