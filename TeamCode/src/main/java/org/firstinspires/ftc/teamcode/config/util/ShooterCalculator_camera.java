@@ -5,73 +5,100 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.util.Range;
 
 /**
- * ShooterCalculator_camera - QUARTIC REGRESSION EQUATIONS
+ * ShooterCalculator_camera - HYBRID APPROACH (COMPETITION READY)
  *
- * Uses quartic (4th degree) polynomial regression calculated from Desmos to determine
- * exact angle and velocity for any given distance.
+ * ANGLE: Lookup table with linear interpolation (100% accurate)
+ * VELOCITY: Quartic regression from Desmos (R² = 0.9928)
  *
- * NEW EQUATIONS (QUARTIC - UPDATED):
- *
- * Velocity: y = 0.0000029312x⁴ - 0.00271878x³ + 0.911705x² - 127.19172x + 7347.21042
- * Angle:    y = -(7.91756×10⁻¹⁰)x⁴ + (7.91916×10⁻⁷)x³ - 0.00027955x² + 0.0405522x - 1.19504
- *
- * These equations should provide better accuracy across the full range of distances
- * compared to the previous cubic equations.
+ * Calibrated from 10 field-tested data points (116cm - 330cm)
+ * ALL DISTANCES IN CENTIMETERS!
  */
 @Config
+@Configurable
 public class ShooterCalculator_camera {
 
-    /**
-     * Get the full configuration for a specific distance
-     * @param distanceCm Distance from the Limelight in Centimeters
-     * @return ShooterConfig containing target angle and velocity
-     */
-    public static ShooterConfig getConfig(double distanceCm) {
-        return new ShooterConfig(distanceCm);
-    }
+    // === ANGLE LOOKUP TABLE - YOUR EXACT MEASURED VALUES ===
+    public static double[] ANGLE_DISTANCES = {
+            116, 155, 177, 205, 240, 250, 295, 310, 320, 330
+    };
+
+    public static double[] ANGLE_VALUES = {
+            0.84, 0.86, 0.86, 0.77, 0.76, 0.76, 0.78, 0.78, 0.80, 0.82
+    };
+
+    // === VELOCITY QUARTIC COEFFICIENTS (from Desmos) ===
+    // y = 0.00000400359x⁴ - 0.00371793x³ + 1.24744x² - 174.87937x + 9720.54418
+    private static final double VEL_A = 0.00000400359;
+    private static final double VEL_B = -0.00371793;
+    private static final double VEL_C = 1.24744;
+    private static final double VEL_D = -174.87937;
+    private static final double VEL_E = 9720.54418;
+
+    // === SAFETY LIMITS ===
+    public static double MIN_ANGLE = 0.70;
+    public static double MAX_ANGLE = 0.90;
+    public static double MIN_VELOCITY = 1100;
+    public static double MAX_VELOCITY = 1800;
 
     /**
-     * Calculates Servo Angle using Quartic (4th degree) Regression
-     *
-     * NEW EQUATION:
-     * y = -(7.91756×10⁻¹⁰)x⁴ + (7.91916×10⁻⁷)x³ - 0.00027955x² + 0.0405522x - 1.19504
+     * Calculate Servo Angle - LOOKUP TABLE METHOD
+     * Uses your exact tested values with linear interpolation
+     * 100% accurate to your field calibration
      */
     public static double calculateAngle(double distanceCm) {
-        double x = distanceCm;
+        // Below minimum distance - use first value
+        if (distanceCm <= ANGLE_DISTANCES[0]) {
+            return ANGLE_VALUES[0];
+        }
 
-        double calculatedAngle =
-                -(7.91756e-10) * Math.pow(x, 4)
-                        + (7.91916e-7) * Math.pow(x, 3)
-                        - 0.00027955 * Math.pow(x, 2)
-                        + 0.0405522 * x
-                        - 1.19504;
+        // Above maximum distance - use last value
+        if (distanceCm >= ANGLE_DISTANCES[ANGLE_DISTANCES.length - 1]) {
+            return ANGLE_VALUES[ANGLE_VALUES.length - 1];
+        }
 
-        // Safety clamp: 0.0 to 1.0 (Servo Position)
-        return Range.clip(calculatedAngle, 0.0, 1.0);
+        // Linear interpolation between closest two points
+        for (int i = 0; i < ANGLE_DISTANCES.length - 1; i++) {
+            if (distanceCm >= ANGLE_DISTANCES[i] && distanceCm <= ANGLE_DISTANCES[i + 1]) {
+                double x1 = ANGLE_DISTANCES[i];
+                double y1 = ANGLE_VALUES[i];
+                double x2 = ANGLE_DISTANCES[i + 1];
+                double y2 = ANGLE_VALUES[i + 1];
+
+                // Linear interpolation formula
+                double slope = (y2 - y1) / (x2 - x1);
+                double interpolatedAngle = y1 + (distanceCm - x1) * slope;
+
+                // Safety clamp
+                return Range.clip(interpolatedAngle, MIN_ANGLE, MAX_ANGLE);
+            }
+        }
+
+        // Fallback (should never reach here)
+        return 0.76;
     }
 
     /**
-     * Calculates Motor Velocity (RPM/Ticks) using Quartic (4th degree) Regression
+     * Calculate Motor Velocity - QUARTIC REGRESSION
+     * R² = 0.9928 (Excellent fit!)
      *
-     * NEW EQUATION:
-     * y = 0.0000029312x⁴ - 0.00271878x³ + 0.911705x² - 127.19172x + 7347.21042
+     * Equation: y = 0.00000400359x⁴ - 0.00371793x³ + 1.24744x² - 174.87937x + 9720.54418
      */
     public static double calculateVelocity(double distanceCm) {
         double x = distanceCm;
 
         double calculatedVel =
-                0.0000029312 * Math.pow(x, 4)
-                        - 0.00271878 * Math.pow(x, 3)
-                        + 0.911705 * Math.pow(x, 2)
-                        - 127.19172 * x
-                        + 7347.21042;
+                VEL_A * Math.pow(x, 4)
+                        + VEL_B * Math.pow(x, 3)
+                        + VEL_C * Math.pow(x, 2)
+                        + VEL_D * x
+                        + VEL_E;
 
-        // Safety clamp: 0 to 2500
-        return Range.clip(calculatedVel, 0.0, 2500.0);
+        // Safety clamp
+        return Range.clip(calculatedVel, MIN_VELOCITY, MAX_VELOCITY);
     }
 
     /**
-     * Complete shooter configuration object
+     * Complete shooter configuration
      */
     public static class ShooterConfig {
         public final double angle;
@@ -83,5 +110,12 @@ public class ShooterCalculator_camera {
             this.angle = calculateAngle(distanceCm);
             this.velocity = calculateVelocity(distanceCm);
         }
+    }
+
+    /**
+     * Get complete config for distance (CM)
+     */
+    public static ShooterConfig getConfig(double distanceCm) {
+        return new ShooterConfig(distanceCm);
     }
 }
