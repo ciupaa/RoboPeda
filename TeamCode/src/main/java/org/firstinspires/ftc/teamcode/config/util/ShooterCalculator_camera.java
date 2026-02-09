@@ -8,10 +8,16 @@ import com.qualcomm.robotcore.util.Range;
  * ShooterCalculator_camera - HYBRID APPROACH (COMPETITION READY)
  *
  * ANGLE: Lookup table with linear interpolation (100% accurate)
- * VELOCITY: Quartic regression from Desmos (R² = 0.9928)
+ * VELOCITY: Quartic regression from Desmos (R² = 0.9928) WITH 8% SAFETY MARGIN
  *
  * Calibrated from 10 field-tested data points (116cm - 330cm)
  * ALL DISTANCES IN CENTIMETERS!
+ *
+ * SAFETY MARGIN: 1.08x multiplier on velocity to compensate for:
+ * - Battery voltage drop during matches
+ * - Motor friction variations
+ * - Temperature effects
+ * - Mechanical wear
  */
 @Config
 @Configurable
@@ -27,18 +33,24 @@ public class ShooterCalculator_camera {
     };
 
     // === VELOCITY QUARTIC COEFFICIENTS (from Desmos) ===
-    // y = 0.00000400359x⁴ - 0.00371793x³ + 1.24744x² - 174.87937x + 9720.54418
+    // Base equation: y = 0.00000400359x⁴ - 0.00371793x³ + 1.24744x² - 174.87937x + 9720.54418
+    // R² = 0.9928 (Excellent fit!)
     private static final double VEL_A = 0.00000400359;
     private static final double VEL_B = -0.00371793;
     private static final double VEL_C = 1.24744;
     private static final double VEL_D = -174.87937;
     private static final double VEL_E = 9720.54418;
 
+    // === SAFETY MARGIN ===
+    // 8% increase to compensate for battery drop, friction, and variations
+    // Adjustable from Dashboard if needed
+    public static double VELOCITY_SAFETY_MULTIPLIER = 1.08;
+
     // === SAFETY LIMITS ===
     public static double MIN_ANGLE = 0.70;
     public static double MAX_ANGLE = 0.90;
     public static double MIN_VELOCITY = 1100;
-    public static double MAX_VELOCITY = 1800;
+    public static double MAX_VELOCITY = 1900;  // Increased for safety margin
 
     /**
      * Calculate Servo Angle - LOOKUP TABLE METHOD
@@ -78,23 +90,33 @@ public class ShooterCalculator_camera {
     }
 
     /**
-     * Calculate Motor Velocity - QUARTIC REGRESSION
+     * Calculate Motor Velocity - QUARTIC REGRESSION WITH SAFETY MARGIN
      * R² = 0.9928 (Excellent fit!)
      *
-     * Equation: y = 0.00000400359x⁴ - 0.00371793x³ + 1.24744x² - 174.87937x + 9720.54418
+     * Base Equation: y = 0.00000400359x⁴ - 0.00371793x³ + 1.24744x² - 174.87937x + 9720.54418
+     *
+     * APPLIES 8% SAFETY MARGIN to ensure consistent scoring even with:
+     * - Battery voltage drop (13V → 12V = -8% power)
+     * - Motor friction variations
+     * - Temperature effects
+     * - Mechanical wear during matches
      */
     public static double calculateVelocity(double distanceCm) {
         double x = distanceCm;
 
-        double calculatedVel =
+        // Calculate base velocity from quartic regression
+        double baseVelocity =
                 VEL_A * Math.pow(x, 4)
                         + VEL_B * Math.pow(x, 3)
                         + VEL_C * Math.pow(x, 2)
                         + VEL_D * x
                         + VEL_E;
 
+        // Apply safety multiplier
+        double safeVelocity = baseVelocity * VELOCITY_SAFETY_MULTIPLIER;
+
         // Safety clamp
-        return Range.clip(calculatedVel, MIN_VELOCITY, MAX_VELOCITY);
+        return Range.clip(safeVelocity, MIN_VELOCITY, MAX_VELOCITY);
     }
 
     /**
