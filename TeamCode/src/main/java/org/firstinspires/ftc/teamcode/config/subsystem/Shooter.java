@@ -16,6 +16,7 @@ public class Shooter extends SubsystemBase {
     private final Servo angle;
     private final Servo blocker;
 
+
     // --- VELOCITY PIDF TUNING ---
     public static double P = 800;
     public static double I = 0;

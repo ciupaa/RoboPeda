@@ -7,10 +7,10 @@ import com.qualcomm.robotcore.util.Range;
 /**
  * ShooterCalculator_camera - HYBRID APPROACH (COMPETITION READY)
  *
- * ANGLE: Lookup table with linear interpolation (100% accurate)
- * VELOCITY: Quartic regression from Desmos (R² = 0.9928) WITH 8% SAFETY MARGIN
+ * ANGLE: Lookup table with linear interpolation (from field testing)
+ * VELOCITY: Quadratic regression from Desmos WITH 8% SAFETY MARGIN
  *
- * Calibrated from 10 field-tested data points (116cm - 330cm)
+ * Calibrated from 16 field-tested data points (97cm - 327cm)
  * ALL DISTANCES IN CENTIMETERS!
  *
  * SAFETY MARGIN: 1.08x multiplier on velocity to compensate for:
@@ -25,21 +25,18 @@ public class ShooterCalculator_camera {
 
     // === ANGLE LOOKUP TABLE - YOUR EXACT MEASURED VALUES ===
     public static double[] ANGLE_DISTANCES = {
-            116, 155, 177, 205, 240, 250, 295, 310, 320, 330
+            97, 110, 130, 140, 160, 180, 200, 210, 223, 235, 250, 270, 290, 305, 318, 327
     };
 
     public static double[] ANGLE_VALUES = {
-            0.84, 0.86, 0.86, 0.77, 0.76, 0.76, 0.78, 0.78, 0.80, 0.82
+            0.84, 0.83, 0.80, 0.80, 0.80, 0.80, 0.78, 0.78, 0.76, 0.77, 0.77, 0.77, 0.77, 0.77, 0.79, 0.76
     };
 
-    // === VELOCITY QUARTIC COEFFICIENTS (from Desmos) ===
-    // Base equation: y = 0.00000400359x⁴ - 0.00371793x³ + 1.24744x² - 174.87937x + 9720.54418
-    // R² = 0.9928 (Excellent fit!)
-    private static final double VEL_A = 0.00000400359;
-    private static final double VEL_B = -0.00371793;
-    private static final double VEL_C = 1.24744;
-    private static final double VEL_D = -174.87937;
-    private static final double VEL_E = 9720.54418;
+    // === VELOCITY QUADRATIC COEFFICIENTS (from Desmos) ===
+    // Equation: y = 0.0101799x² - 2.26609x + 1263.85611
+    private static final double VEL_A = 0.0101799;
+    private static final double VEL_B = -2.26609;
+    private static final double VEL_C = 1263.85611;
 
     // === SAFETY MARGIN ===
     // 8% increase to compensate for battery drop, friction, and variations
@@ -50,7 +47,7 @@ public class ShooterCalculator_camera {
     public static double MIN_ANGLE = 0.70;
     public static double MAX_ANGLE = 0.90;
     public static double MIN_VELOCITY = 1100;
-    public static double MAX_VELOCITY = 1900;  // Increased for safety margin
+    public static double MAX_VELOCITY = 1900;
 
     /**
      * Calculate Servo Angle - LOOKUP TABLE METHOD
@@ -86,14 +83,13 @@ public class ShooterCalculator_camera {
         }
 
         // Fallback (should never reach here)
-        return 0.76;
+        return 0.78;
     }
 
     /**
-     * Calculate Motor Velocity - QUARTIC REGRESSION WITH SAFETY MARGIN
-     * R² = 0.9928 (Excellent fit!)
+     * Calculate Motor Velocity - QUADRATIC REGRESSION WITH SAFETY MARGIN
      *
-     * Base Equation: y = 0.00000400359x⁴ - 0.00371793x³ + 1.24744x² - 174.87937x + 9720.54418
+     * Equation: y = 0.0101799x² - 2.26609x + 1263.85611
      *
      * APPLIES 8% SAFETY MARGIN to ensure consistent scoring even with:
      * - Battery voltage drop (13V → 12V = -8% power)
@@ -104,13 +100,11 @@ public class ShooterCalculator_camera {
     public static double calculateVelocity(double distanceCm) {
         double x = distanceCm;
 
-        // Calculate base velocity from quartic regression
+        // Calculate base velocity from quadratic regression
         double baseVelocity =
-                VEL_A * Math.pow(x, 4)
-                        + VEL_B * Math.pow(x, 3)
-                        + VEL_C * Math.pow(x, 2)
-                        + VEL_D * x
-                        + VEL_E;
+                VEL_A * Math.pow(x, 2)
+                        + VEL_B * x
+                        + VEL_C;
 
         // Apply safety multiplier
         double safeVelocity = baseVelocity * VELOCITY_SAFETY_MULTIPLIER;

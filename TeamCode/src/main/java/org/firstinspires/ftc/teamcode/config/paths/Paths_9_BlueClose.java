@@ -27,7 +27,7 @@ import org.firstinspires.ftc.teamcode.config.Robot;
 public class Paths_9_BlueClose {
 
     // Robot starting pose (BLUE CLOSE)
-    public Pose startPose = new Pose(25.248, 128.587, Math.toRadians(180));
+    public Pose startPose = new Pose(25.248, 128.587, Math.toRadians(-37));
 
     // All path chains
     public PathChain ShootPreload;
@@ -52,7 +52,7 @@ public class Paths_9_BlueClose {
                         new Pose(44.110, 117.771),
                         new Pose(50.000, 93.000)
                 ))
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(137))
+                .setLinearHeadingInterpolation(Math.toRadians(-37), Math.toRadians(137))
                 .build();
 
         // Path 2: GoTo1 – Curve to first intake approach
