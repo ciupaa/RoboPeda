@@ -34,7 +34,7 @@ public class MainTeleOp_Blue_camera extends OpMode {
     // === DISTANCE-BASED VELOCITY REDUCTION ===
     // When distance > 300cm, reduce velocity by this amount
     public static double VERY_FAR_DISTANCE_THRESHOLD = 300.0;  // cm
-    public static double VERY_FAR_VELOCITY_REDUCTION = 20.0;   // ticks/sec to subtract
+    public static double VERY_FAR_VELOCITY_REDUCTION = 30;   // ticks/sec to subtract
 
     private double lastTxError = 0;
     private final ElapsedTime pidTimer = new ElapsedTime();
