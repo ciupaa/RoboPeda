@@ -77,10 +77,10 @@ public class Paths_9_BlueClose_New {
                 .build();
 
         GoTo2 = follower.pathBuilder().addPath(
-                        new BezierLine(
+                        new BezierCurve(
                                 new Pose(50.000, 93.000),
-
-                                new Pose(41.000, 60.000)
+                                new Pose(53.372, 76.977),
+                                new Pose(48.046, 59.853)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(137), Math.toRadians(180))
 
@@ -88,7 +88,7 @@ public class Paths_9_BlueClose_New {
 
         Intake2 = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(41.000, 60.000),
+                                new Pose(48.046, 59.853),
 
                                 new Pose(18.000, 60.000)
                         )
@@ -127,10 +127,10 @@ public class Paths_9_BlueClose_New {
                 .build();
 
         GoTo1 = follower.pathBuilder().addPath(
-                        new BezierLine(
+                        new BezierCurve(
                                 new Pose(50.000, 93.000),
-
-                                new Pose(41.000, 84.000)
+                                new Pose(49.647, 85.830),
+                                new Pose(48.193, 84.147)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(137), Math.toRadians(180))
 
@@ -138,7 +138,7 @@ public class Paths_9_BlueClose_New {
 
         Intake1 = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(41.000, 84.000),
+                                new Pose(48.193, 84.147),
 
                                 new Pose(16.400, 84.000)
                         )
