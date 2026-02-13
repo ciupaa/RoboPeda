@@ -90,7 +90,7 @@ public class Paths_9_BlueClose_New {
                         new BezierLine(
                                 new Pose(48.046, 59.853),
 
-                                new Pose(18.000, 60.000)
+                                new Pose(15.000, 60.000)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
@@ -98,7 +98,7 @@ public class Paths_9_BlueClose_New {
 
         AllignToGate = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(18.000, 60.000),
+                                new Pose(15.000, 60.000),
 
                                 new Pose(36.945, 69.055)
                         )
