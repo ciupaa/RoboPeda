@@ -82,7 +82,7 @@ public class Paths_9_RedClose_New {
                         new BezierCurve(
                                 new Pose(94.000, 93.000),
                                 new Pose(90.628, 76.977),
-                                new Pose(95.954, 59.853)
+                                new Pose(95.954, 60)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
 
@@ -92,16 +92,16 @@ public class Paths_9_RedClose_New {
                         new BezierLine(
                                 new Pose(95.954, 59.853),
 
-                                new Pose(129.000, 60.000)
+                                new Pose(130.000, 60.000)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
                 .build();
 
         AllignToGate = follower.pathBuilder().addPath(
-                        new BezierLine(
-                                new Pose(129.000, 60.000),
-
+                        new BezierCurve(
+                                new Pose(130.000, 60.000),
+                                new Pose(114.330, 60.298),
                                 new Pose(107.055, 69.055)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(180))
@@ -132,7 +132,7 @@ public class Paths_9_RedClose_New {
                         new BezierCurve(
                                 new Pose(94.000, 93.000),
                                 new Pose(94.353, 85.830),
-                                new Pose(95.807, 84.147)
+                                new Pose(95.807, 84)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
 
@@ -140,7 +140,7 @@ public class Paths_9_RedClose_New {
 
         Intake1 = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(95.807, 84.147),
+                                new Pose(95.807, 84),
 
                                 new Pose(127.600, 84.000)
                         )

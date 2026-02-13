@@ -80,7 +80,7 @@ public class Paths_9_BlueClose_New {
                         new BezierCurve(
                                 new Pose(50.000, 93.000),
                                 new Pose(53.372, 76.977),
-                                new Pose(48.046, 59.853)
+                                new Pose(48.046, 60)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(137), Math.toRadians(180))
 
@@ -90,16 +90,16 @@ public class Paths_9_BlueClose_New {
                         new BezierLine(
                                 new Pose(48.046, 59.853),
 
-                                new Pose(15.000, 60.000)
+                                new Pose(13.000, 60.000)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
 
                 .build();
 
         AllignToGate = follower.pathBuilder().addPath(
-                        new BezierLine(
-                                new Pose(15.000, 60.000),
-
+                        new BezierCurve(
+                                new Pose(13.000, 60.000),
+                                new Pose(28.174, 59.601),
                                 new Pose(36.945, 69.055)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(0))
@@ -130,7 +130,7 @@ public class Paths_9_BlueClose_New {
                         new BezierCurve(
                                 new Pose(50.000, 93.000),
                                 new Pose(49.647, 85.830),
-                                new Pose(48.193, 84.147)
+                                new Pose(48.193, 84)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(137), Math.toRadians(180))
 
@@ -138,7 +138,7 @@ public class Paths_9_BlueClose_New {
 
         Intake1 = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(48.193, 84.147),
+                                new Pose(48.193, 84),
 
                                 new Pose(16.400, 84.000)
                         )
