@@ -35,13 +35,13 @@ import org.firstinspires.ftc.teamcode.config.Robot_camera;
 public class Paths_9_RedClose_New {
 
     // Robot starting pose (RED CLOSE) - same start as Paths_9_RedClose
-    public Pose startPose = new Pose(118.752, 128.587, Math.toRadians(0));
+    public Pose startPose = new Pose(118.75229357798165, 128.5871559633028, Math.toRadians(217));
 
     // All path chains
     public PathChain ShootPreload;
     public PathChain GoTo2;
     public PathChain Intake2;
-    public PathChain AlignToGate;
+    public PathChain AllignToGate;
     public PathChain PushGate;
     public PathChain Shoot2;
     public PathChain GoTo1;
@@ -68,104 +68,104 @@ public class Paths_9_RedClose_New {
 
         // Path 1: ShootPreload – Bezier curve from start to scoring position
         // Heading: 0° → 43°  (note: .pp file shows startDeg=217 which wraps to 0° effectively)
-        ShootPreload = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        new Pose(118.752, 128.587),
-                        new Pose(99.890, 117.771),
-                        new Pose(94.000, 93.000)
-                ))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(43))
+        ShootPreload = follower.pathBuilder().addPath(
+                        new BezierCurve(
+                                new Pose(118.752, 128.587),
+                                new Pose(99.890, 117.771),
+                                new Pose(94.000, 93.000)
+                        )
+                ).setLinearHeadingInterpolation(Math.toRadians(217), Math.toRadians(43))
+
                 .build();
 
-        // Path 2: GoTo2 – Straight line from scoring position to artifact 2 approach
-        // Heading: 43° → 0°
-        GoTo2 = follower.pathBuilder()
-                .addPath(new BezierLine(
-                        new Pose(94.000, 93.000),
-                        new Pose(103.000, 60.000)
-                ))
-                .setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+        GoTo2 = follower.pathBuilder().addPath(
+                        new BezierLine(
+                                new Pose(94.000, 93.000),
+
+                                new Pose(103.000, 60.000)
+                        )
+                ).setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+
                 .build();
 
-        // Path 3: Intake2 – Straight line forward while intaking artifact 2
-        // Heading: constant 0°
-        Intake2 = follower.pathBuilder()
-                .addPath(new BezierLine(
-                        new Pose(103.000, 60.000),
-                        new Pose(126.000, 60.000)
-                ))
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+        Intake2 = follower.pathBuilder().addPath(
+                        new BezierLine(
+                                new Pose(103.000, 60.000),
+
+                                new Pose(126.000, 60.000)
+                        )
+                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+
                 .build();
 
-        // Path 4: AlignToGate – Straight line to align with gate artifact
-        // Heading: 0° → 180°  (robot rotates to face gate, mirrored from blue)
-        AlignToGate = follower.pathBuilder()
-                .addPath(new BezierLine(
-                        new Pose(126.000, 60.000),
-                        new Pose(107.055, 69.055)
-                ))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(180))
+        AllignToGate = follower.pathBuilder().addPath(
+                        new BezierLine(
+                                new Pose(126.000, 60.000),
+
+                                new Pose(107.055, 69.055)
+                        )
+                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(180))
+
                 .build();
 
-        // Path 5: PushGate – Straight line to push gate artifact
-        // Heading: constant 180°
-        PushGate = follower.pathBuilder()
-                .addPath(new BezierLine(
-                        new Pose(107.055, 69.055),
-                        new Pose(128.055, 69.046)
-                ))
-                .setConstantHeadingInterpolation(Math.toRadians(180))
+        PushGate = follower.pathBuilder().addPath(
+                        new BezierLine(
+                                new Pose(107.055, 69.055),
+
+                                new Pose(128.055, 69.046)
+                        )
+                ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
+
                 .build();
 
-        // Path 6: Shoot2 – Bezier curve back to scoring position after gate push
-        // Heading: 180° → 43°
-        Shoot2 = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        new Pose(128.055, 69.046),
-                        new Pose(94.468, 58.298),
-                        new Pose(94.000, 93.000)
-                ))
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(43))
+        Shoot2 = follower.pathBuilder().addPath(
+                        new BezierCurve(
+                                new Pose(128.055, 69.046),
+                                new Pose(94.468, 58.298),
+                                new Pose(94.000, 93.000)
+                        )
+                ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(43))
+
                 .build();
 
-        // Path 7: GoTo1 – Straight line to artifact 1 approach
-        // Heading: 43° → 0°
-        GoTo1 = follower.pathBuilder()
-                .addPath(new BezierLine(
-                        new Pose(94.000, 93.000),
-                        new Pose(103.000, 84.000)
-                ))
-                .setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+        GoTo1 = follower.pathBuilder().addPath(
+                        new BezierLine(
+                                new Pose(94.000, 93.000),
+
+                                new Pose(103.000, 84.000)
+                        )
+                ).setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+
                 .build();
 
-        // Path 8: Intake1 – Straight line forward while intaking artifact 1
-        // Heading: constant 0°
-        Intake1 = follower.pathBuilder()
-                .addPath(new BezierLine(
-                        new Pose(103.000, 84.000),
-                        new Pose(127.600, 84.000)
-                ))
-                .setConstantHeadingInterpolation(Math.toRadians(0))
+        Intake1 = follower.pathBuilder().addPath(
+                        new BezierLine(
+                                new Pose(103.000, 84.000),
+
+                                new Pose(127.600, 84.000)
+                        )
+                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+
                 .build();
 
-        // Path 9: Shoot1 – Straight line back to scoring position (NO CURVE)
-        // Heading: 0° → 43°
-        Shoot1 = follower.pathBuilder()
-                .addPath(new BezierLine(
-                        new Pose(127.600, 84.000),
-                        new Pose(94.000, 93.000)
-                ))
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(43))
+        Shoot1 = follower.pathBuilder().addPath(
+                        new BezierLine(
+                                new Pose(127.600, 84.000),
+
+                                new Pose(94.000, 93.000)
+                        )
+                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(43))
+
                 .build();
 
-        // Path 10: Park – Straight line to park outside triangle
-        // Heading: 43° → 0°
-        Park = follower.pathBuilder()
-                .addPath(new BezierLine(
-                        new Pose(94.000, 93.000),
-                        new Pose(125.009, 92.578)
-                ))
-                .setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+        Park = follower.pathBuilder().addPath(
+                        new BezierLine(
+                                new Pose(94.000, 93.000),
+
+                                new Pose(125.009, 92.578)
+                        )
+                ).setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+
                 .build();
     }
 }

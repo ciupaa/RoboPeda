@@ -72,7 +72,7 @@ public class Auto_9_BlueClose_New extends OpModeCommand {
 
                         // ── STEP 3: SHOOT PRELOAD ─────────────────────────────────
                         // Camera-based distance shot; fallback to 0.65 if no target
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, false),  // CLOSE SHOT
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 2.5, false),  // CLOSE SHOT
 
                         // ── STEP 4: DRIVE TO ARTIFACT 2, INTAKE ON ───────────────
                         // Lower angle to intake position and start intake concurrently with drive
@@ -93,14 +93,14 @@ public class Auto_9_BlueClose_New extends OpModeCommand {
                         // ── STEP 6: ALIGN TO GATE ────────────────────────────────
                         // Stop intake, navigate to gate alignment position
                         new InstantAction(() -> r.intake.stop()),
-                        new FollowPath(r, p.AlignToGate),
+                        new FollowPath(r, p.AllignToGate),
 
                         // ── STEP 7: PUSH GATE ARTIFACT ───────────────────────────
                         new FollowPath(r, p.PushGate),
 
                         // ── STEP 8: DRIVE TO SCORING, SHOOT 2 ────────────────────
                         new FollowPath(r, p.Shoot2),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, false),  // CLOSE SHOT
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 2.5, false),  // CLOSE SHOT
 
                         // ── STEP 9: DRIVE TO ARTIFACT 1, INTAKE ON ───────────────
                         new InstantAction(() -> r.shooter.setAngle(1.0)),
@@ -119,7 +119,7 @@ public class Auto_9_BlueClose_New extends OpModeCommand {
                         // ── STEP 11: DRIVE TO SCORING, SHOOT 1 ───────────────────
                         new InstantAction(() -> r.intake.stop()),
                         new FollowPath(r, p.Shoot1),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, false),  // CLOSE SHOT
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 2.5, false),  // CLOSE SHOT
 
                         // ── STEP 12: PARK ─────────────────────────────────────────
                         new InstantAction(() -> r.shooter.setAngle(1.0)),
