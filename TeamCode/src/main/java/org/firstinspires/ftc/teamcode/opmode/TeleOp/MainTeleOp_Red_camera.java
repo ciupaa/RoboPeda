@@ -31,11 +31,6 @@ public class MainTeleOp_Red_camera extends OpMode {
     public static double FAR_DISTANCE_THRESHOLD = 250.0;  // cm
     public static double FAR_TX_OFFSET = -4.0;             // degrees to shift RIGHT (tune on field!)
 
-    // === DISTANCE-BASED VELOCITY REDUCTION ===
-    // When distance > 300cm, reduce velocity by this amount
-    public static double VERY_FAR_DISTANCE_THRESHOLD = 300.0;  // cm
-    public static double VERY_FAR_VELOCITY_REDUCTION = 30;   // ticks/sec to subtract
-
     private double lastTxError = 0;
     private final ElapsedTime pidTimer = new ElapsedTime();
 
@@ -141,7 +136,6 @@ public class MainTeleOp_Red_camera extends OpMode {
             }
 
             // Apply offset: instead of aligning to tx=0, align to tx=offset
-            // error = tx - offset: if tx > offset, we need to rotate; at tx=offset we're "centered"
             double tx = r.limelight.getTx();
             double adjustedError = tx - currentTxOffset;
 
@@ -166,21 +160,15 @@ public class MainTeleOp_Red_camera extends OpMode {
                 autoShootState = AutoShootState.ALIGNED_SHOOTING;
                 r.drive.driveRobotCentric(x, y, 0);
 
-                if (shootState == ShootState.WAIT_SPINUP) {
-                    if (distanceCm > 0) {
-                        ShooterCalculator_camera.ShooterConfig config =
-                                ShooterCalculator_camera.getConfig(distanceCm);
-                        currentTargetAngle = config.angle;
-                        currentTargetVel = config.velocity;
-
-                        // Reduce velocity at very far distances
-                        if (distanceCm > VERY_FAR_DISTANCE_THRESHOLD) {
-                            currentTargetVel -= VERY_FAR_VELOCITY_REDUCTION;
-                        }
-                    } else {
-                        currentTargetAngle = MANUAL_ANGLE;
-                        currentTargetVel = MANUAL_VELOCITY;
-                    }
+                // UPDATE ANGLE AND VELOCITY EVERY LOOP from Limelight distance
+                if (distanceCm > 0) {
+                    ShooterCalculator_camera.ShooterConfig config =
+                            ShooterCalculator_camera.getConfig(distanceCm);
+                    currentTargetAngle = config.angle;
+                    currentTargetVel = config.velocity;
+                } else {
+                    currentTargetAngle = MANUAL_ANGLE;
+                    currentTargetVel = MANUAL_VELOCITY;
                 }
 
                 executeShootingSequence(AUTO_VELOCITY_THRESHOLD);
@@ -359,24 +347,28 @@ public class MainTeleOp_Red_camera extends OpMode {
             if (distance > 0) {
                 telemetry.addData("Distance", "%.1f cm (%.2f m)", distance, distance/100.0);
                 telemetry.addData("Far Mode", distance > FAR_DISTANCE_THRESHOLD ? "YES (aim RIGHT)" : "NO");
+
+                ShooterCalculator_camera.ShooterConfig config =
+                        ShooterCalculator_camera.getConfig(distance);
+                telemetry.addData("Calc Angle", "%.3f", config.angle);
+                telemetry.addData("Calc Vel", "%.0f", config.velocity);
             } else {
                 telemetry.addData("Distance", "INVALID - Tune target coords!");
             }
             if (autoShootState == AutoShootState.ALIGNING) {
                 telemetry.addData("Status", "ALIGNING");
             } else if (autoShootState == AutoShootState.ALIGNED_SHOOTING) {
-                telemetry.addData("Status", "ALIGNED");
+                telemetry.addData("Status", "ALIGNED - SHOOTING");
             }
         } else {
             telemetry.addData("Camera", "No Tag 24");
         }
         telemetry.addLine("");
-        telemetry.addData("Mode", gamepad1.right_bumper ? "AUTO" :
+        telemetry.addData("Mode", gamepad1.right_bumper ? "AUTO (distance-based)" :
                 gamepad1.left_bumper ? "MANUAL (1140)" : "IDLE");
         telemetry.addData("Intake", intakeActive ? "ON (Toggle)" : "OFF");
         telemetry.addData("Vel", "%.0f / %.0f", r.shooter.getVelocity(), currentTargetVel);
         telemetry.addData("Angle", "%.3f", currentTargetAngle);
-
         telemetry.update();
     }
 }
