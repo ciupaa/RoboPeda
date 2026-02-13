@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.config.commands.IntakeCommand;
 import org.firstinspires.ftc.teamcode.config.paths.Red_Far_Path_Alt;
 import org.firstinspires.ftc.teamcode.config.util.Alliance;
 import org.firstinspires.ftc.teamcode.config.util.OpModeCommand;
+import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
 
 @Autonomous(name = "Red Far Alt", group = "Competition")
 public class Red_Far_Alt extends OpModeCommand {
@@ -36,37 +37,36 @@ public class Red_Far_Alt extends OpModeCommand {
                         ),
                         new InstantAction(() -> currentStep = "Preload: Shooting"),
                         new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, true),  // FAR SHOT
-                        new InstantAction(() -> r.shooter.block())
-
+                        new InstantAction(() -> r.shooter.block()),
 
                         // ARTIFACT 1
-//                        new InstantAction(() -> currentStep = "Art1: Driving to position"),
-//                        new FollowPath(r, p.paths.GoTo1),
-//                        new InstantAction(() -> currentStep = "Art1: Intaking"),
-//                        new ParallelCommandGroup(
-//                                new IntakeCommand(r.intake, false, 2),
-//                                new FollowPath(r, p.paths.Intake1)
-//                        ),
-//                        new InstantAction(() -> currentStep = "Art1: Returning to goal"),
-//                        new ParallelCommandGroup(
-//                                new InstantAction(() -> r.shooter.unblock()),
-//                                new FollowPath(r, p.paths.Shoot1)
-//                        ),
-//                        new InstantAction(() -> currentStep = "Art1: Shooting"),
-//                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, true),  // FAR SHOT
-//                        new InstantAction(() -> r.shooter.block()),
-//
-//                        // EXIT TRIANGLE
-//                        new InstantAction(() -> currentStep = "Exit: Moving out of triangle"),
-//                        new FollowPath(r, p.paths.OutOfTriangle),
-//
-//                        // COMPLETE
-//                        new InstantAction(() -> {
-//                            currentStep = "COMPLETE";
-//                            r.shooter.block();
-//                            r.shooter.stop();
-//                            r.intake.stop();
-//                        })
+                        new InstantAction(() -> currentStep = "Art1: Driving to position"),
+                        new FollowPath(r, p.paths.GoTo1),
+                        new InstantAction(() -> currentStep = "Art1: Intaking"),
+                        new ParallelCommandGroup(
+                                new IntakeCommand(r.intake, false, 2),
+                                new FollowPath(r, p.paths.Intake1)
+                        ),
+                        new InstantAction(() -> currentStep = "Art1: Returning to goal"),
+                        new ParallelCommandGroup(
+                                new InstantAction(() -> r.shooter.unblock()),
+                                new FollowPath(r, p.paths.Shoot1)
+                        ),
+                        new InstantAction(() -> currentStep = "Art1: Shooting"),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, true),  // FAR SHOT
+                        new InstantAction(() -> r.shooter.block()),
+
+                        // EXIT TRIANGLE
+                        new InstantAction(() -> currentStep = "Exit: Moving out of triangle"),
+                        new FollowPath(r, p.paths.OutOfTriangle),
+
+                        // COMPLETE
+                        new InstantAction(() -> {
+                            currentStep = "COMPLETE";
+                            r.shooter.block();
+                            r.shooter.stop();
+                            r.intake.stop();
+                        })
                 )
         );
     }
@@ -77,7 +77,7 @@ public class Red_Far_Alt extends OpModeCommand {
         r.periodic();
 
         telemetry.addLine("=== RED FAR ALT AUTO ===");
-        telemetry.addData("Shoot Pos", "83.72, 18.49, 60°");
+        telemetry.addData("Shoot Pos", "83.72, 18.49, 63°");
         telemetry.addData("Runtime", "%.1f sec", getRuntime());
         telemetry.addData("Current Step", currentStep);
         telemetry.addLine("");
@@ -92,14 +92,14 @@ public class Red_Far_Alt extends OpModeCommand {
             telemetry.addData("TY", "%.2f deg", r.limelight.getTy());
 
             if (distance > 0) {
-                org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera.ShooterConfig config =
-                        org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera.getConfig(distance);
+                ShooterCalculator_camera.ShooterConfig config =
+                        ShooterCalculator_camera.getConfig(distance);
                 telemetry.addData("Calc Angle", "%.3f", config.angle);
                 telemetry.addData("Calc Vel", "%.0f", config.velocity);
             }
         } else {
             telemetry.addData("Target", "NO TAG 24");
-            telemetry.addData("Failsafe", "FAR (1500 / 0.65)");
+            telemetry.addData("Failsafe", "FAR (1630 / 0.8)");
         }
 
         telemetry.addLine("");

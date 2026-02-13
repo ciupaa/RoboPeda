@@ -2,15 +2,17 @@ package org.firstinspires.ftc.teamcode.opmode.auto;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.seattlesolvers.solverslib.command.CommandBase;
+import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
-import com.seattlesolvers.solverslib.command.WaitCommand;
 
-import org.firstinspires.ftc.teamcode.config.Robot;
+import org.firstinspires.ftc.teamcode.config.Robot_camera;
+import org.firstinspires.ftc.teamcode.config.commands.AutoShootCommand;
 import org.firstinspires.ftc.teamcode.config.commands.FollowPath;
-import org.firstinspires.ftc.teamcode.config.commands.ShootCommand;
+import org.firstinspires.ftc.teamcode.config.commands.IntakeCommand;
 import org.firstinspires.ftc.teamcode.config.paths.Paths_12_BlueClose;
 import org.firstinspires.ftc.teamcode.config.util.Alliance;
 import org.firstinspires.ftc.teamcode.config.util.OpModeCommand;
+import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
 
 /**
  * FILE: Auto_12_BlueClose.java
@@ -19,6 +21,9 @@ import org.firstinspires.ftc.teamcode.config.util.OpModeCommand;
  * Scores preload + 3 intaked balls (4 shots) and pushes 3 gate artifacts.
  * Parks outside the scoring triangle at the end.
  *
+ * Uses Robot_camera + AutoShootCommand (Limelight distance-based shooting)
+ * Same logic/timing as Blue_Close working autonomous.
+ *
  * Sequence:
  *   SHOOT PRELOAD → INTAKE 1 → OPEN 3 GATES → SHOOT 1 →
  *   INTAKE 2 → SHOOT 2 → INTAKE 3 → SHOOT 3 → PARK
@@ -26,16 +31,13 @@ import org.firstinspires.ftc.teamcode.config.util.OpModeCommand;
 @Autonomous(name = "12pt Blue Close", group = "Competition")
 public class Auto_12_BlueClose extends OpModeCommand {
 
-    Robot r;
-
-    // Shooting parameters (consistent scoring position at ~50, 93)
-    private static final double SHOOT_ANGLE = 0.65;
-    private static final double SAFE_ANGLE = 1.0;
+    Robot_camera r;
+    private String currentStep = "INIT";
 
     @Override
     public void initialize() {
-        // 1. Initialize Robot Hardware
-        r = new Robot(hardwareMap, Alliance.BLUE);
+        // 1. Initialize Robot Hardware (with camera)
+        r = new Robot_camera(hardwareMap, Alliance.BLUE);
 
         // 2. Load Paths
         Paths_12_BlueClose p = new Paths_12_BlueClose(r.f);
@@ -47,72 +49,140 @@ public class Auto_12_BlueClose extends OpModeCommand {
         schedule(
                 new SequentialCommandGroup(
 
-                        // ====== PREP ======
-                        new InstantAction(() -> r.shooter.setAngle(SAFE_ANGLE)),
-                        new InstantAction(() -> r.shooter.block()),
-                        new WaitCommand(200),
-
                         // ====== SHOOT PRELOAD ======
-                        new FollowPath(r, p.ShootPreload),
-                        new ShootCommand(r.shooter, r.intake, true, SHOOT_ANGLE),
+                        new InstantAction(() -> currentStep = "Preload: Prep"),
+                        new ParallelCommandGroup(
+                                new InstantAction(() -> r.shooter.setAngle(0.7)),
+                                new InstantAction(() -> r.shooter.unblock()),
+                                new FollowPath(r, p.ShootPreload)
+                        ),
+                        new InstantAction(() -> currentStep = "Preload: Shooting"),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, false),  // CLOSE SHOT
+                        new InstantAction(() -> r.shooter.block()),
 
                         // ====== INTAKE CYCLE 1 ======
-                        new InstantAction(() -> r.shooter.setAngle(SAFE_ANGLE)),
+                        new InstantAction(() -> currentStep = "Art1: Driving to position"),
                         new FollowPath(r, p.GoTo1),
-                        new InstantAction(() -> r.intake.intake()),
-                        new FollowPath(r, p.Intake1),
-                        new InstantAction(() -> r.intake.stop()),
+                        new InstantAction(() -> currentStep = "Art1: Intaking"),
+                        new ParallelCommandGroup(
+                                new IntakeCommand(r.intake, false, 2.5),
+                                new FollowPath(r, p.Intake1)
+                        ),
 
                         // ====== PUSH 3 GATE ARTIFACTS ======
+                        new InstantAction(() -> currentStep = "Gates: Pushing artifacts"),
                         new FollowPath(r, p.OpenGate),
                         new FollowPath(r, p.OpenGate2),
                         new FollowPath(r, p.OpenGate3),
 
                         // ====== SHOOT BALL 1 ======
-                        new FollowPath(r, p.Shoot1),
-                        new ShootCommand(r.shooter, r.intake, true, SHOOT_ANGLE),
+                        new InstantAction(() -> currentStep = "Art1: Returning to goal"),
+                        new ParallelCommandGroup(
+                                new InstantAction(() -> r.shooter.unblock()),
+                                new FollowPath(r, p.Shoot1)
+                        ),
+                        new InstantAction(() -> currentStep = "Art1: Shooting"),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, false),  // CLOSE SHOT
+                        new InstantAction(() -> r.shooter.block()),
 
                         // ====== INTAKE CYCLE 2 ======
-                        new InstantAction(() -> r.shooter.setAngle(SAFE_ANGLE)),
+                        new InstantAction(() -> currentStep = "Art2: Driving to position"),
                         new FollowPath(r, p.GoTo2),
-                        new InstantAction(() -> r.intake.intake()),
-                        new FollowPath(r, p.Intake2),
-                        new InstantAction(() -> r.intake.stop()),
+                        new InstantAction(() -> currentStep = "Art2: Intaking"),
+                        new ParallelCommandGroup(
+                                new IntakeCommand(r.intake, false, 2),
+                                new FollowPath(r, p.Intake2)
+                        ),
 
                         // ====== SHOOT BALL 2 ======
-                        new FollowPath(r, p.Shoot2),
-                        new ShootCommand(r.shooter, r.intake, true, SHOOT_ANGLE),
+                        new InstantAction(() -> currentStep = "Art2: Returning to goal"),
+                        new ParallelCommandGroup(
+                                new InstantAction(() -> r.shooter.unblock()),
+                                new FollowPath(r, p.Shoot2)
+                        ),
+                        new InstantAction(() -> currentStep = "Art2: Shooting"),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, false),  // CLOSE SHOT
+                        new InstantAction(() -> r.shooter.block()),
 
                         // ====== INTAKE CYCLE 3 ======
-                        new InstantAction(() -> r.shooter.setAngle(SAFE_ANGLE)),
+                        new InstantAction(() -> currentStep = "Art3: Driving to position"),
                         new FollowPath(r, p.GoTo3),
-                        new InstantAction(() -> r.intake.intake()),
-                        new FollowPath(r, p.Intake3),
-                        new InstantAction(() -> r.intake.stop()),
+                        new InstantAction(() -> currentStep = "Art3: Intaking"),
+                        new ParallelCommandGroup(
+                                new IntakeCommand(r.intake, false, 2),
+                                new FollowPath(r, p.Intake3)
+                        ),
 
                         // ====== SHOOT BALL 3 ======
-                        new FollowPath(r, p.Shoot3),
-                        new ShootCommand(r.shooter, r.intake, true, SHOOT_ANGLE),
+                        new InstantAction(() -> currentStep = "Art3: Returning to goal"),
+                        new ParallelCommandGroup(
+                                new InstantAction(() -> r.shooter.unblock()),
+                                new FollowPath(r, p.Shoot3)
+                        ),
+                        new InstantAction(() -> currentStep = "Art3: Shooting"),
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 4, false),  // CLOSE SHOT
+                        new InstantAction(() -> r.shooter.block()),
 
                         // ====== PARK ======
-                        new InstantAction(() -> r.shooter.setAngle(SAFE_ANGLE)),
-                        new InstantAction(() -> r.shooter.block()),
+                        new InstantAction(() -> currentStep = "Park: Moving out of triangle"),
                         new FollowPath(r, p.OutOfTriangle),
 
-                        // Final stop
-                        new InstantAction(() -> r.shooter.stop()),
-                        new InstantAction(() -> r.intake.stop())
+                        // COMPLETE
+                        new InstantAction(() -> {
+                            currentStep = "COMPLETE";
+                            r.shooter.block();
+                            r.shooter.stop();
+                            r.intake.stop();
+                        })
                 )
         );
     }
 
     @Override
     public void loop() {
-        super.loop();   // Run the Command Scheduler
-        r.periodic();   // Update Robot Hardware (Pedro, PIDs)
+        super.loop();
+        r.periodic();
+
+        telemetry.addLine("=== 12PT BLUE CLOSE AUTO ===");
+        telemetry.addData("Runtime", "%.1f sec", getRuntime());
+        telemetry.addData("Current Step", currentStep);
+        telemetry.addLine("");
+
+        telemetry.addLine("=== LIMELIGHT (TAG 20) ===");
+        if (r.limelight.hasTarget()) {
+            double distance = r.limelight.getDistanceToTarget();
+            telemetry.addData("Target", "LOCKED");
+            telemetry.addData("Tag ID", r.limelight.getDetectedTagId());
+            telemetry.addData("Distance", "%.1f cm", distance);
+            telemetry.addData("TX", "%.2f deg", r.limelight.getTx());
+            telemetry.addData("TY", "%.2f deg", r.limelight.getTy());
+
+            if (distance > 0) {
+                ShooterCalculator_camera.ShooterConfig config =
+                        ShooterCalculator_camera.getConfig(distance);
+                telemetry.addData("Calc Angle", "%.3f", config.angle);
+                telemetry.addData("Calc Vel", "%.0f", config.velocity);
+            }
+        } else {
+            telemetry.addData("Target", "NO TAG 20");
+            telemetry.addData("Failsafe", "CLOSE (1140 / 0.84)");
+        }
+
+        telemetry.addLine("");
+        telemetry.addLine("=== SHOOTER ===");
+        telemetry.addData("Actual Vel", "%.0f RPM", r.shooter.getVelocity());
+        telemetry.addData("Actual Angle", "%.3f", r.shooter.getAngle());
+
+        telemetry.addLine("");
+        telemetry.addLine("=== POSITION ===");
+        telemetry.addData("X", "%.1f", r.f.getPose().getX());
+        telemetry.addData("Y", "%.1f", r.f.getPose().getY());
+        telemetry.addData("Heading", "%.1f deg", Math.toDegrees(r.f.getPose().getHeading()));
+        telemetry.addData("Path Busy", r.f.isBusy());
+
+        telemetry.update();
     }
 
-    // Helper: Runs a single action instantly as a Command
     public static class InstantAction extends CommandBase {
         private final Runnable action;
         public InstantAction(Runnable action) { this.action = action; }
