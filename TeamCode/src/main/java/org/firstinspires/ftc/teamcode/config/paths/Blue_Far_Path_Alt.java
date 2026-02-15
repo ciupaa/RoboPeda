@@ -5,6 +5,7 @@ import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.teamcode.config.Robot;
 import org.firstinspires.ftc.teamcode.config.Robot_camera;
@@ -22,6 +23,7 @@ import org.firstinspires.ftc.teamcode.config.Robot_camera;
  * - Shoot1: Return to goal to shoot artifact 1
  * - OutofTriangle: Exit triangle after final shot
  */
+@Disabled
 public class Blue_Far_Path_Alt {
 
     public Paths paths;
