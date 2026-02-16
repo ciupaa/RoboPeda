@@ -71,19 +71,19 @@ public class Paths_9_RedClose_New2 {
                         new BezierCurve(
                                 new Pose(118.752, 128.587),
                                 new Pose(99.890, 117.771),
-                                new Pose(89.000, 100.000)
+                                new Pose(84.400, 102.600)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(217), Math.toRadians(40))
+                ).setLinearHeadingInterpolation(Math.toRadians(217), Math.toRadians(37))
 
                 .build();
 
         GoTo2 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(89.000, 100.000),
+                                new Pose(84.400, 102.600),
                                 new Pose(90.628, 76.977),
                                 new Pose(95.954, 59.500)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+                ).setLinearHeadingInterpolation(Math.toRadians(37), Math.toRadians(0))
 
                 .build();
 
@@ -121,19 +121,19 @@ public class Paths_9_RedClose_New2 {
                         new BezierCurve(
                                 new Pose(128.055, 69.046),
                                 new Pose(94.468, 58.298),
-                                new Pose(89.000, 100.000)
+                                new Pose(84.400, 102.600)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(40))
+                ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(37))
 
                 .build();
 
         GoTo1 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(89.000, 100.000),
+                                new Pose(84.400, 102.600),
                                 new Pose(94.353, 85.830),
                                 new Pose(95.807, 84.000)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+                ).setLinearHeadingInterpolation(Math.toRadians(37), Math.toRadians(0))
 
                 .build();
 
@@ -151,19 +151,19 @@ public class Paths_9_RedClose_New2 {
                         new BezierLine(
                                 new Pose(127.600, 84.000),
 
-                                new Pose(89.000, 100.000)
+                                new Pose(84.400, 102.600)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(40))
+                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(37))
 
                 .build();
 
         Park = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(89.000, 100.000),
+                                new Pose(84.400, 102.600),
 
                                 new Pose(120.605, 92.578)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+                ).setLinearHeadingInterpolation(Math.toRadians(37), Math.toRadians(0))
 
                 .build();
     }
