@@ -29,9 +29,9 @@ public class MainTeleOp extends OpMode {
     private boolean jamRumbled = false;
 
     // YOUR WORKING PRESETS
-    private static final double HIGH_PRESET = 0.8;   // Far shot - 1550 velocity
-    private static final double LOW_PRESET = 0.84;    // Close shot - 1140 velocity ← UPDATED!
-    private static final double IDLE_PRESET = 0.9;    // Safe position
+    private static final double HIGH_PRESET = 0.650;   // Far shot - 1550 velocity
+    private static final double LOW_PRESET = 0.863;    // Close shot - 1140 velocity ← UPDATED!
+    private static final double IDLE_PRESET = 0.8;    // Safe position
 
     // PULSE FEEDING STRATEGY
     private static final double FEED_PULSE_MS = 120;
@@ -111,12 +111,12 @@ public class MainTeleOp extends OpMode {
             jamRumbled = false;
 
             double targetAngle = highHeld ? HIGH_PRESET : LOW_PRESET;
-            currentTargetVel = highHeld ? 1630 : 1140;  // ← UPDATED!
+            currentTargetVel = highHeld ? 1708 : 1314;  // ← UPDATED!
 
             r.shooter.setAngle(targetAngle);
 
             if (highHeld) r.shooter.spinHigh();
-            else r.shooter.launcher.setVelocity(1140);  // ← UPDATED!
+            else r.shooter.launcher.setVelocity(1314);  // ← UPDATED!
 
             double currentVel = r.shooter.getVelocity();
 

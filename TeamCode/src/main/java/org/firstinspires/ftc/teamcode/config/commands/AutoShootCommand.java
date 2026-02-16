@@ -37,8 +37,8 @@ public class AutoShootCommand extends CommandBase {
     private static final double VELOCITY_TOLERANCE = 80;
 
     // FAILSAFE VALUES
-    private static final double FAR_FAILSAFE_ANGLE = 0.8;
-    private static final double FAR_FAILSAFE_VELOCITY = 1630;
+    private static final double FAR_FAILSAFE_ANGLE = 0.650;
+    private static final double FAR_FAILSAFE_VELOCITY = 1708;
     private static final double CLOSE_FAILSAFE_ANGLE = 0.862;   // ← UPDATED!
     private static final double CLOSE_FAILSAFE_VELOCITY = 1316; // ← UPDATED!
 

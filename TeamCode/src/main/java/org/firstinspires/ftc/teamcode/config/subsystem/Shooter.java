@@ -27,7 +27,7 @@ public class Shooter extends SubsystemBase {
 
     // --- SERVO POSITIONS ---
     // Blocker servo positions
-    public double blockPos = 0.3;    // Closed (Default)
+    public double blockPos = 0.35;    // Closed (Default)
     public double unblockPos = 0.8;  // Open (Shooting)
 
     // --- ANGLE OVERRIDE FOR LIVE TUNING ---
