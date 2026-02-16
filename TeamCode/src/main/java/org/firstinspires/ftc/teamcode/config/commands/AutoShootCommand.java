@@ -39,8 +39,8 @@ public class AutoShootCommand extends CommandBase {
     // FAILSAFE VALUES
     private static final double FAR_FAILSAFE_ANGLE = 0.8;
     private static final double FAR_FAILSAFE_VELOCITY = 1630;
-    private static final double CLOSE_FAILSAFE_ANGLE = 0.84;   // ← UPDATED!
-    private static final double CLOSE_FAILSAFE_VELOCITY = 1140; // ← UPDATED!
+    private static final double CLOSE_FAILSAFE_ANGLE = 0.862;   // ← UPDATED!
+    private static final double CLOSE_FAILSAFE_VELOCITY = 1316; // ← UPDATED!
 
     private enum State {
         WAIT_SPINUP,

@@ -72,7 +72,7 @@ public class Paths_9_BlueClose_New2 {
                                 new Pose(44.110, 117.771),
                                 new Pose(59.600, 102.600)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(-37), Math.toRadians(143))
+                ).setLinearHeadingInterpolation(Math.toRadians(-37), Math.toRadians(145))
 
                 .build();
 
@@ -82,7 +82,7 @@ public class Paths_9_BlueClose_New2 {
                                 new Pose(53.372, 76.977),
                                 new Pose(48.046, 59.500)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(143), Math.toRadians(180))
+                ).setLinearHeadingInterpolation(Math.toRadians(145), Math.toRadians(180))
 
                 .build();
 
@@ -122,7 +122,7 @@ public class Paths_9_BlueClose_New2 {
                                 new Pose(49.532, 58.298),
                                 new Pose(59.600, 102.600)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(143))
+                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(145))
 
                 .build();
 
@@ -132,7 +132,7 @@ public class Paths_9_BlueClose_New2 {
                                 new Pose(49.647, 85.830),
                                 new Pose(48.193, 84.000)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(143), Math.toRadians(180))
+                ).setLinearHeadingInterpolation(Math.toRadians(145), Math.toRadians(180))
 
                 .build();
 
@@ -152,7 +152,7 @@ public class Paths_9_BlueClose_New2 {
 
                                 new Pose(59.600, 102.600)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(143))
+                ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(145))
 
                 .build();
 
@@ -162,7 +162,7 @@ public class Paths_9_BlueClose_New2 {
 
                                 new Pose(23.395, 92.578)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(143), Math.toRadians(180))
+                ).setLinearHeadingInterpolation(Math.toRadians(145), Math.toRadians(180))
 
                 .build();
     }
