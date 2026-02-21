@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.config.Robot_camera;
  * PURPOSE: 12-Point Autonomous paths for BLUE ALLIANCE, CLOSE side - NEW SEQUENCE.
  *
  * Extended version of Paths_9_BlueClose_New2 with an additional intake/shoot cycle (Artifact 3).
- * Coordinates sourced from 12_AutoBlue_Close_(1).pp
+ * Coordinates sourced from 12_AutoBlue.pp
  *
  * Sequence:
  *   1.  ShootPreload  – Curve from start to scoring position (50, 93) at 137°
@@ -32,8 +32,8 @@ import org.firstinspires.ftc.teamcode.config.Robot_camera;
  */
 public class Paths_12_BlueClose_New {
 
-    // Robot starting pose (BLUE CLOSE)
-    public Pose startPose = new Pose(25.24770642201835, 128.5871559633028, Math.toRadians(-37));
+    // Robot starting pose (BLUE CLOSE) - from 12_AutoBlue.pp
+    public Pose startPose = new Pose(25.247706422018354, 128.5871559633028, Math.toRadians(-37));
 
     // All path chains
     public PathChain ShootPreload;
@@ -71,8 +71,8 @@ public class Paths_12_BlueClose_New {
         // Heading: -37° → 137°
         ShootPreload = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(25.248, 128.587),
-                                new Pose(44.110, 117.771),
+                                new Pose(25.247706422018354, 128.5871559633028),
+                                new Pose(44.11, 117.771),
                                 new Pose(50.000, 93.000)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(-37), Math.toRadians(137))
@@ -103,7 +103,7 @@ public class Paths_12_BlueClose_New {
         AllignToGate = follower.pathBuilder().addPath(
                         new BezierCurve(
                                 new Pose(12.000, 59.5),
-                                new Pose(17.487, 39.748),
+                                new Pose(17.486513761467904, 39.74754128440367),
                                 new Pose(36.945, 69.055)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(0))
@@ -114,7 +114,7 @@ public class Paths_12_BlueClose_New {
         PushGate = follower.pathBuilder().addPath(
                         new BezierLine(
                                 new Pose(36.945, 69.055),
-                                new Pose(15.945, 69.046)
+                                new Pose(15.944999999999993, 69.046)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
@@ -123,7 +123,7 @@ public class Paths_12_BlueClose_New {
         // Heading: 0° → 137°
         Shoot2 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(15.945, 69.046),
+                                new Pose(15.944999999999993, 69.046),
                                 new Pose(49.532, 58.298),
                                 new Pose(50.000, 93.000)
                         )
@@ -135,7 +135,7 @@ public class Paths_12_BlueClose_New {
         GoTo1 = follower.pathBuilder().addPath(
                         new BezierCurve(
                                 new Pose(50.000, 93.000),
-                                new Pose(49.647, 85.830),
+                                new Pose(49.647, 85.83),
                                 new Pose(48.193, 84.000)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(137), Math.toRadians(180))
@@ -166,7 +166,7 @@ public class Paths_12_BlueClose_New {
         GoTo3 = follower.pathBuilder().addPath(
                         new BezierLine(
                                 new Pose(50.000, 93.000),
-                                new Pose(48.807, 35.193)
+                                new Pose(48.80733944954129, 35.192660550458726)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(137), Math.toRadians(180))
                 .build();
@@ -175,8 +175,8 @@ public class Paths_12_BlueClose_New {
         // Heading: constant 180°
         Intake3 = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(48.807, 35.193),
-                                new Pose(8.908, 35.560)
+                                new Pose(48.80733944954129, 35.192660550458726),
+                                new Pose(8.908256880733944, 35.55963302752296)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(180))
                 .build();
@@ -185,7 +185,7 @@ public class Paths_12_BlueClose_New {
         // Heading: 180° → 137°
         Shoot3 = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(8.908, 35.560),
+                                new Pose(8.908256880733944, 35.55963302752296),
                                 new Pose(50.000, 93.000)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(137))
@@ -196,7 +196,7 @@ public class Paths_12_BlueClose_New {
         Park = follower.pathBuilder().addPath(
                         new BezierLine(
                                 new Pose(50.000, 93.000),
-                                new Pose(26.202, 92.752)
+                                new Pose(26.20183486238531, 92.75229357798163)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(137), Math.toRadians(180))
                 .build();

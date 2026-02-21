@@ -9,6 +9,7 @@ import com.seattlesolvers.solverslib.command.WaitCommand;
 import org.firstinspires.ftc.teamcode.config.Robot_camera;
 import org.firstinspires.ftc.teamcode.config.commands.AutoShootCommand;
 import org.firstinspires.ftc.teamcode.config.commands.FollowPath;
+import org.firstinspires.ftc.teamcode.config.commands.IntakeCommand;
 import org.firstinspires.ftc.teamcode.config.paths.Paths_12_RedClose_New;
 import org.firstinspires.ftc.teamcode.config.util.Alliance;
 import org.firstinspires.ftc.teamcode.config.util.OpModeCommand;
@@ -18,7 +19,7 @@ import org.firstinspires.ftc.teamcode.config.util.OpModeCommand;
  * PURPOSE: 12-Point Autonomous – RED ALLIANCE, CLOSE side, NEW path sequence.
  *
  * Extends the 9-point NEW2 close sequence with a third intake/shoot cycle (Artifact 3).
- * Uses Paths_12_RedClose_New (coordinates from 12_AutoRed_Close.pp).
+ * Uses Paths_12_RedClose_New (coordinates from 12_Auto_Red.pp).
  *
  * CAMERA PIPELINE: 2 (AprilTag – Red target TAG 24)
  *
@@ -67,7 +68,7 @@ public class Auto_12_RedClose_New extends OpModeCommand {
                         new FollowPath(r, p.ShootPreload),
 
                         // ── STEP 3: SHOOT PRELOAD ─────────────────────────────────
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 2.5, false),  // CLOSE SHOT
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 2.7, false),  // CLOSE SHOT
 
                         // ── STEP 4: DRIVE TO ARTIFACT 2, INTAKE ON ───────────────
                         new InstantAction(() -> r.shooter.setAngle(1.0)),
@@ -82,6 +83,8 @@ public class Auto_12_RedClose_New extends OpModeCommand {
                                 new FollowPath(r, p.Intake2),
                                 new InstantAction(() -> r.intake.intake())
                         ),
+                        // Extra intake time after path finishes
+                        new IntakeCommand(r.intake, false, 0.8),
 
                         // ── STEP 6: ALIGN TO GATE ────────────────────────────────
                         new InstantAction(() -> r.intake.stop()),
@@ -92,7 +95,7 @@ public class Auto_12_RedClose_New extends OpModeCommand {
 
                         // ── STEP 8: DRIVE TO SCORING, SHOOT 2 ────────────────────
                         new FollowPath(r, p.Shoot2),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 2.5, false),  // CLOSE SHOT
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 2.7, false),  // CLOSE SHOT
 
                         // ── STEP 9: DRIVE TO ARTIFACT 1, INTAKE ON ───────────────
                         new InstantAction(() -> r.shooter.setAngle(1.0)),
@@ -107,11 +110,13 @@ public class Auto_12_RedClose_New extends OpModeCommand {
                                 new FollowPath(r, p.Intake1),
                                 new InstantAction(() -> r.intake.intake())
                         ),
+                        // Extra intake time after path finishes
+                        new IntakeCommand(r.intake, false, 0.8),
 
                         // ── STEP 11: DRIVE TO SCORING, SHOOT 1 ───────────────────
                         new InstantAction(() -> r.intake.stop()),
                         new FollowPath(r, p.Shoot1),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 2.5, false),  // CLOSE SHOT
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 2.7, false),  // CLOSE SHOT
 
                         // ── STEP 12: DRIVE TO ARTIFACT 3, INTAKE ON ──────────────
                         new InstantAction(() -> r.shooter.setAngle(1.0)),
@@ -126,11 +131,13 @@ public class Auto_12_RedClose_New extends OpModeCommand {
                                 new FollowPath(r, p.Intake3),
                                 new InstantAction(() -> r.intake.intake())
                         ),
+                        // Extra intake time after path finishes
+                        new IntakeCommand(r.intake, false, 0.8),
 
                         // ── STEP 14: DRIVE TO SCORING, SHOOT 3 ───────────────────
                         new InstantAction(() -> r.intake.stop()),
                         new FollowPath(r, p.Shoot3),
-                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 2.5, false),  // CLOSE SHOT
+                        new AutoShootCommand(r.shooter, r.intake, r.limelight, 2.7, false),  // CLOSE SHOT
 
                         // ── STEP 15: PARK ─────────────────────────────────────────
                         new InstantAction(() -> r.shooter.setAngle(1.0)),

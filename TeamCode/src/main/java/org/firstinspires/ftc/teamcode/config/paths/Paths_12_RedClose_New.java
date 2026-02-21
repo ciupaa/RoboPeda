@@ -13,26 +13,27 @@ import org.firstinspires.ftc.teamcode.config.Robot_camera;
  * PURPOSE: 12-Point Autonomous paths for RED ALLIANCE, CLOSE side - NEW SEQUENCE.
  *
  * Mirrored version of Paths_12_BlueClose_New with the Red alliance field coordinates.
- * Coordinates sourced from 12_AutoRed_Close.pp
+ * Coordinates sourced from 12_Auto_Red.pp
+ * Uses (84.4, 102.6) shooting position like Red 9pt NEW2
  *
  * Sequence:
- *   1.  ShootPreload  – Curve from start to scoring position (94, 93) at 43°
+ *   1.  ShootPreload  – Curve from start to scoring position (84.4, 102.6) at 35°
  *   2.  GoTo2         – Curve down to artifact 2 approach (95.954, 59.5)
  *   3.  Intake2       – Drive straight while intaking artifact 2 (132, 59.5)
  *   4.  AllignToGate  – Curve to gate alignment position, rotate 0°→180°
  *   5.  PushGate      – Line to push gate artifact right (128.055, 69.046)
- *   6.  Shoot2        – Curve back to scoring position (94, 93) at 43°
+ *   6.  Shoot2        – Curve back to scoring position (84.4, 102.6) at 35°
  *   7.  GoTo1         – Curve to artifact 1 approach (95.807, 84)
  *   8.  Intake1       – Drive straight while intaking artifact 1 (127.6, 84)
- *   9.  Shoot1        – Straight line back to scoring position (94, 93) at 43°
- *  10.  GoTo3         – Straight line to artifact 3 approach (95.193, 35.193)
- *  11.  Intake3       – Drive straight while intaking artifact 3 (135.092, 35.560)
- *  12.  Shoot3        – Straight line back to scoring position (94, 93) at 43°
- *  13.  Park          – Straight line to park (117.798, 92.752)
+ *   9.  Shoot1        – Straight line back to scoring position (84.4, 102.6) at 35°
+ *  10.  GoTo3         – Straight line to artifact 3 approach (95.8, 35.4)
+ *  11.  Intake3       – Drive straight while intaking artifact 3 (132, 35.376)
+ *  12.  Shoot3        – Curve back to scoring position (84.4, 102.6) at 35°
+ *  13.  Park          – Straight line to park (120.073, 92.183)
  */
 public class Paths_12_RedClose_New {
 
-    // Robot starting pose (RED CLOSE)
+    // Robot starting pose (RED CLOSE) - from 12_Auto_Red.pp
     public Pose startPose = new Pose(118.75229357798165, 128.5871559633028, Math.toRadians(217));
 
     // All path chains
@@ -68,25 +69,25 @@ public class Paths_12_RedClose_New {
     private void buildPaths(Follower follower) {
 
         // Path 1: ShootPreload – Bezier curve from start to scoring position
-        // Heading: 217° → 43°
+        // Heading: 217° → 35°
         ShootPreload = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(118.752, 128.587),
-                                new Pose(99.890, 117.771),
-                                new Pose(94.000, 93.000)
+                                new Pose(118.75229357798165, 128.5871559633028),
+                                new Pose(99.89, 117.771),
+                                new Pose(84.400, 102.600)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(217), Math.toRadians(43))
+                ).setLinearHeadingInterpolation(Math.toRadians(217), Math.toRadians(35))
                 .build();
 
         // Path 2: GoTo2 – Curve toward artifact 2 approach
-        // Heading: 43° → 0°
+        // Heading: 35° → 0°
         GoTo2 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(94.000, 93.000),
+                                new Pose(84.400, 102.600),
                                 new Pose(90.628, 76.977),
                                 new Pose(95.954, 59.5)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+                ).setLinearHeadingInterpolation(Math.toRadians(35), Math.toRadians(0))
                 .build();
 
         // Path 3: Intake2 – Straight line while intaking artifact 2
@@ -120,25 +121,25 @@ public class Paths_12_RedClose_New {
                 .build();
 
         // Path 6: Shoot2 – Curve back to scoring position
-        // Heading: 180° → 43°
+        // Heading: 180° → 35°
         Shoot2 = follower.pathBuilder().addPath(
                         new BezierCurve(
                                 new Pose(128.055, 69.046),
                                 new Pose(94.468, 58.298),
-                                new Pose(94.000, 93.000)
+                                new Pose(84.400, 102.600)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(43))
+                ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(35))
                 .build();
 
         // Path 7: GoTo1 – Curve to artifact 1 approach
-        // Heading: 43° → 0°
+        // Heading: 35° → 0°
         GoTo1 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(94.000, 93.000),
-                                new Pose(94.353, 85.830),
+                                new Pose(84.400, 102.600),
+                                new Pose(94.353, 85.83),
                                 new Pose(95.807, 84.000)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+                ).setLinearHeadingInterpolation(Math.toRadians(35), Math.toRadians(0))
                 .build();
 
         // Path 8: Intake1 – Straight line while intaking artifact 1
@@ -152,53 +153,54 @@ public class Paths_12_RedClose_New {
                 .build();
 
         // Path 9: Shoot1 – Straight line back to scoring position
-        // Heading: 0° → 43°
+        // Heading: 0° → 35°
         Shoot1 = follower.pathBuilder().addPath(
                         new BezierLine(
                                 new Pose(127.600, 84.000),
-                                new Pose(94.000, 93.000)
+                                new Pose(84.400, 102.600)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(43))
+                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(35))
                 .build();
 
         // Path 10: GoTo3 – Straight line to artifact 3 approach
-        // Heading: 43° → 0°
+        // Heading: 35° → 0°
         GoTo3 = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(94.000, 93.000),
-                                new Pose(95.193, 35.193)
+                                new Pose(84.400, 102.600),
+                                new Pose(95.800, 35.400)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+                ).setLinearHeadingInterpolation(Math.toRadians(35), Math.toRadians(0))
                 .build();
 
         // Path 11: Intake3 – Straight line while intaking artifact 3
         // Heading: constant 0°
         Intake3 = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(95.193, 35.193),
-                                new Pose(135.092, 35.560)
+                                new Pose(95.800, 35.400),
+                                new Pose(132.000, 35.37614678899082)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
-        // Path 12: Shoot3 – Straight line back to scoring position
-        // Heading: 0° → 43°
+        // Path 12: Shoot3 – Curve back to scoring position
+        // Heading: 0° → 35°
         Shoot3 = follower.pathBuilder().addPath(
-                        new BezierLine(
-                                new Pose(135.092, 35.560),
-                                new Pose(94.000, 93.000)
+                        new BezierCurve(
+                                new Pose(132.000, 35.37614678899082),
+                                new Pose(99.47522935779817, 66.37339449541285),
+                                new Pose(84.400, 102.600)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(43))
+                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(35))
                 .build();
 
         // Path 13: Park – Straight line to parking position
-        // Heading: 43° → 0°
+        // Heading: 35° → 0°
         Park = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(94.000, 93.000),
-                                new Pose(117.798, 92.752)
+                                new Pose(84.400, 102.600),
+                                new Pose(120.07339449541284, 92.18348623853211)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(43), Math.toRadians(0))
+                ).setLinearHeadingInterpolation(Math.toRadians(35), Math.toRadians(0))
                 .build();
     }
 }
