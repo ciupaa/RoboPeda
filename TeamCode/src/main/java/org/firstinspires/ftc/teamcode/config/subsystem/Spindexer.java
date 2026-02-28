@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
+import org.firstinspires.ftc.teamcode.config.util.Motif;
 
 /**
  * Three-slot spindexer that:
@@ -82,9 +83,15 @@ public class Spindexer extends SubsystemBase {
 
     /**
      * Simple storage for HuskyLens "color IDs" or any application-level code.
-     * For example: 1 = red, 2 = blue, 3 = yellow, etc.
+     * Use Motif.GREEN_HUSKY_COLOR_ID and Motif.PURPLE_HUSKY_COLOR_ID for Decode.
      */
     private final int[] slotColorIds;
+
+    /** Motif from AprilTag scan (GPP, PGP, PPG). Null until scanned. */
+    private Motif motif = null;
+
+    /** Which of the 3 motif positions we will feed next (0, 1, or 2). */
+    private int nextFeedPosition = 0;
 
     public Spindexer(HardwareMap hardwareMap) {
         motor = hardwareMap.get(DcMotorEx.class, "spindexer");
@@ -185,6 +192,66 @@ public class Spindexer extends SubsystemBase {
         for (int i = 0; i < SLOT_COUNT; i++) {
             slotColorIds[i] = 0;
         }
+    }
+
+    // --- MOTIF (AprilTag scan at auto / TeleOp start) ---
+
+    /** Set motif from AprilTag scan. Call after reading tag at start of auto and TeleOp. */
+    public void setMotif(Motif m) {
+        motif = m;
+        nextFeedPosition = 0;
+    }
+
+    /** Current motif, or null if not yet scanned. */
+    public Motif getMotif() {
+        return motif;
+    }
+
+    /**
+     * Feed order: which slot index to feed 1st, 2nd, 3rd to match motif.
+     * Returns {slotForFirst, slotForSecond, slotForThird} or null if motif not set or slot colors unknown.
+     */
+    public int[] getFeedOrder() {
+        if (motif == null) return null;
+        int[] order = new int[3];
+        boolean[] used = new boolean[3];
+        for (int pos = 0; pos < 3; pos++) {
+            int wantColorId = motif.getColorIdAtPosition(pos);
+            int slot = -1;
+            for (int s = 0; s < SLOT_COUNT; s++) {
+                if (!used[s] && slotColorIds[s] == wantColorId) {
+                    slot = s;
+                    used[s] = true;
+                    break;
+                }
+            }
+            if (slot < 0) return null;
+            order[pos] = slot;
+        }
+        return order;
+    }
+
+    /** Slot index that should be fed next to maintain motif order. -1 if no motif or feed order unknown. */
+    public int getNextFeedSlotIndex() {
+        int[] feedOrder = getFeedOrder();
+        if (feedOrder == null || nextFeedPosition >= 3) return -1;
+        return feedOrder[nextFeedPosition];
+    }
+
+    /** Call after feeding one artifact; advances to next position in motif order. */
+    public void advanceFeedPosition() {
+        if (nextFeedPosition < 2) nextFeedPosition++;
+    }
+
+    /** Rotate spindexer so the slot that should be fed next is at the feed position (slot 0 = feed). */
+    public void rotateToNextFeedSlot() {
+        int slot = getNextFeedSlotIndex();
+        if (slot >= 0) moveToSlot(slot);
+    }
+
+    /** Reset feed position to first in motif (e.g. start of shooting sequence). */
+    public void resetFeedPosition() {
+        nextFeedPosition = 0;
     }
 
     /**

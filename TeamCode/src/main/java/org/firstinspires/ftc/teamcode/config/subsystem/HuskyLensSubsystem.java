@@ -10,17 +10,19 @@ import com.seattlesolvers.solverslib.command.SubsystemBase;
  * Thin wrapper around the FTC HuskyLens driver.
  *
  * This subsystem:
- * - Configures the HuskyLens in COLOR_RECOGNITION mode
- * - Exposes helper methods to get the "dominant" detected color ID
- *   that you can store per spindexer slot.
+ * - COLOR_RECOGNITION: get dominant color ID per spindexer slot.
+ * - TAG_RECOGNITION: read AprilTag ID for motif scan at auto/TeleOp start.
  *
- * Training of colors (ID1, ID2, ...) is done on the device itself.
+ * Training of colors (ID1, ID2, ...) and tag recognition is done on the device.
  */
 @Config
 @Configurable
 public class HuskyLensSubsystem extends SubsystemBase {
 
     private final HuskyLens huskyLens;
+
+    /** Last seen AprilTag ID when in TAG_RECOGNITION mode; 0 if none. */
+    private int lastAprilTagId = 0;
 
     /**
      * Minimum bounding box area (pixels^2) to consider a valid detection.
@@ -62,6 +64,41 @@ public class HuskyLensSubsystem extends SubsystemBase {
             }
         }
         return bestId;
+    }
+
+    /** Switch to AprilTag (tag) recognition for motif scan. */
+    public void switchToAprilTagMode() {
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
+    }
+
+    /** Switch back to color recognition for spindexer color scan. */
+    public void switchToColorMode() {
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.COLOR_RECOGNITION);
+    }
+
+    /**
+     * Call each loop during motif scan. Updates lastAprilTagId from largest block.
+     * @return current best tag ID, or 0 if none
+     */
+    public int updateAprilTagId() {
+        HuskyLens.Block[] blocks = huskyLens.blocks();
+        lastAprilTagId = 0;
+        if (blocks != null && blocks.length > 0) {
+            int bestArea = 0;
+            for (HuskyLens.Block block : blocks) {
+                int area = block.width * block.height;
+                if (area > bestArea) {
+                    bestArea = area;
+                    lastAprilTagId = block.id;
+                }
+            }
+        }
+        return lastAprilTagId;
+    }
+
+    /** Last AprilTag ID seen (after updateAprilTagId). */
+    public int getLastAprilTagId() {
+        return lastAprilTagId;
     }
 }
 

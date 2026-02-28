@@ -9,6 +9,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.config.Robot_v2;
 import org.firstinspires.ftc.teamcode.config.util.Alliance;
+import org.firstinspires.ftc.teamcode.config.util.Motif;
+import org.firstinspires.ftc.teamcode.config.util.MotifScanHelper;
 import org.firstinspires.ftc.teamcode.config.util.ShooterCalculatorVelocityComp;
 
 /**
@@ -32,7 +34,10 @@ public class MainTeleOp_TurretSpindexer_Red extends OpMode {
     public void init() {
         r = new Robot_v2(hardwareMap, Alliance.RED);
         r.turretShooter.block();
-        telemetry.addData("Status", "Initialized RED (Turret + Spindexer + Velocity Comp)");
+        telemetry.addData("Status", "Scanning AprilTag for motif...");
+        telemetry.update();
+        Motif motif = MotifScanHelper.runMotifScan(r);
+        telemetry.addData("Status", "Initialized RED | Motif: %s", motif);
     }
 
     @Override
@@ -87,6 +92,7 @@ public class MainTeleOp_TurretSpindexer_Red extends OpMode {
         telemetry.addData("Vel comp", shot.usedVelocityCompensation ? "ON" : "OFF");
         telemetry.addData("Hood", "%.2f Flywheel %.0f", shot.hoodServoPosition, shot.flywheelVelocity);
         telemetry.addData("Turret offset (deg)", "%.1f", shot.turretOffsetDeg);
+        telemetry.addData("Motif", r.spindexer.getMotif() != null ? r.spindexer.getMotif().name() : "?");
         telemetry.addData("Spindexer slot", r.spindexer.getCurrentSlotIndex());
         telemetry.update();
     }

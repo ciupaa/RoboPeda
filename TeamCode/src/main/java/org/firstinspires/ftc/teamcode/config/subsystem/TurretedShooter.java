@@ -70,6 +70,9 @@ public class TurretedShooter extends SubsystemBase {
 
     public static double TURRET_MAX_POWER = 0.6;
 
+    /** Turret angle (deg) for AprilTag motif scan at start of auto and TeleOp. Tune so tag is in view. */
+    public static double TURRET_ANGLE_APRILTAG_SCAN_DEG = 0.0;
+
     public TurretedShooter(HardwareMap hardwareMap) {
         leftFlywheel = hardwareMap.get(DcMotorEx.class, "shooter_left");
         rightFlywheel = hardwareMap.get(DcMotorEx.class, "shooter_right");
@@ -155,6 +158,11 @@ public class TurretedShooter extends SubsystemBase {
     }
 
     // --- TURRET CONTROL ---
+
+    /** Move turret to the AprilTag scan position (for motif read at init). */
+    public void setTurretToAprilTagScanPosition() {
+        setTurretAngleDegrees(TURRET_ANGLE_APRILTAG_SCAN_DEG);
+    }
 
     /**
      * Set turret angle in degrees relative to its zero reference.
