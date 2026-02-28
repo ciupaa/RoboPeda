@@ -183,9 +183,25 @@ public class TurretedShooter extends SubsystemBase {
      * @param targetHeadingDeg desired global heading pointing at the goal (degrees)
      */
     public void aimUsingRobotHeading(double robotHeadingDeg, double targetHeadingDeg) {
+        aimWithVelocityCompensation(robotHeadingDeg, targetHeadingDeg, 0.0);
+    }
+
+    /**
+     * Aim with velocity compensation: base aim + turret offset (degrees).
+     * Use ShotResult.turretOffsetDeg when shooting while moving.
+     */
+    public void aimWithVelocityCompensation(double robotHeadingDeg, double targetHeadingDeg, double turretOffsetDeg) {
         double delta = normalizeAngleDeg(targetHeadingDeg - robotHeadingDeg);
-        double turretCommandDeg = delta + TURRET_ZERO_OFFSET_DEG;
+        double turretCommandDeg = delta + TURRET_ZERO_OFFSET_DEG + turretOffsetDeg;
         setTurretAngleDegrees(turretCommandDeg);
+    }
+
+    /**
+     * Set flywheel velocity from calculator output (same units as setVelocity).
+     */
+    public void setFlywheelVelocity(double velocity) {
+        leftFlywheel.setVelocity(velocity);
+        rightFlywheel.setVelocity(velocity);
     }
 
     private static double normalizeAngleDeg(double angle) {

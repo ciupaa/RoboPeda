@@ -59,6 +59,19 @@ public class Spindexer extends SubsystemBase {
      */
     public static int ENCODER_ZERO_OFFSET_TICKS = 0;
 
+    // --- TIMING (from FTC Decode artifact size + motor RPM) ---
+    /**
+     * FTC Decode artifact: nominal 5" diameter ball.
+     * Spindexer has 3 slots → 360/3 = 120° per slot.
+     * At 435 RPM: 435/60 = 7.25 rev/s → time for 120° = (120/360)/7.25 ≈ 0.046 s.
+     */
+    public static int SPINDEXER_MOTOR_RPM = 435;
+    /**
+     * Time in milliseconds to rotate one slot (120°) at SPINDEXER_MOTOR_RPM.
+     * Formula: (360/3) / (RPM/60) * 1000 = 20000/RPM ≈ 46 ms at 435 RPM.
+     */
+    public static int INDEX_TIME_MS = (int) Math.round(20000.0 / SPINDEXER_MOTOR_RPM);
+
     // --- STATE ---
 
     /**
@@ -179,6 +192,14 @@ public class Spindexer extends SubsystemBase {
      */
     public int getEncoderPosition() {
         return motor.getCurrentPosition();
+    }
+
+    /**
+     * Time in ms to rotate one slot at current SPINDEXER_MOTOR_RPM.
+     * Based on FTC Decode artifact (5" ball) and 3-slot layout (120° per slot).
+     */
+    public static int getIndexTimeMs() {
+        return (int) Math.round(20000.0 / SPINDEXER_MOTOR_RPM);
     }
 }
 

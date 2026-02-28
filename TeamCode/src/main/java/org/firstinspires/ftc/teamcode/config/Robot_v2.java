@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.config;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.math.Vector;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -61,6 +62,28 @@ public class Robot_v2 {
         f.update();
         pinpoint.periodic();
         turretShooter.periodic();
+    }
+
+    /**
+     * Robot velocity in field frame (in/s). From Pedro localizer.
+     * Returns [vx, vy]. If unavailable, returns [0, 0].
+     */
+    public double[] getRobotVelocityInPerSec() {
+        try {
+            var vel = f.getPoseTracker().getLocalizer().getVelocity();
+            double vx = vel.getX();
+            double vy = vel.getY();
+            return new double[]{vx, vy};
+        } catch (Throwable t) {
+            try {
+                var vel = f.getVelocity();
+                double vx = vel.getXComponent();
+                double vy = vel.dot(new Vector(1, Math.PI / 2));
+                return new double[]{vx, vy};
+            } catch (Throwable t2) {
+                return new double[]{0, 0};
+            }
+        }
     }
 }
 
