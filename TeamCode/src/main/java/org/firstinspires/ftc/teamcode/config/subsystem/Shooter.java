@@ -16,6 +16,7 @@ public class Shooter extends SubsystemBase {
     private final Servo angle;
     private final Servo blocker;
 
+
     // --- VELOCITY PIDF TUNING ---
     public static double P = 800;
     public static double I = 0;
@@ -26,8 +27,8 @@ public class Shooter extends SubsystemBase {
 
     // --- SERVO POSITIONS ---
     // Blocker servo positions
-    public double blockPos = 0.89;    // Closed (Default)
-    public double unblockPos = 0.24;  // Open (Shooting)
+    public double blockPos = 0.35;    // Closed (Default)
+    public double unblockPos = 0.8;  // Open (Shooting)
 
     // --- ANGLE OVERRIDE FOR LIVE TUNING ---
     public static boolean USE_ANGLE_OVERRIDE = false;

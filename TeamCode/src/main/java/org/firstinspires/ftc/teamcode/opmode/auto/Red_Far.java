@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.config.commands.IntakeCommand;
 import org.firstinspires.ftc.teamcode.config.paths.Red_Far_Path;
 import org.firstinspires.ftc.teamcode.config.util.Alliance;
 import org.firstinspires.ftc.teamcode.config.util.OpModeCommand;
+import org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera;
 
 @Autonomous(name = "Red Far", group = "Competition")
 public class Red_Far extends OpModeCommand {
@@ -57,7 +58,7 @@ public class Red_Far extends OpModeCommand {
 
                         // EXIT TRIANGLE
                         new InstantAction(() -> currentStep = "Exit: Moving out of triangle"),
-                        new FollowPath(r, p.paths.OutOfTriangle),
+                        new FollowPath(r, p.paths.OutofTriangle),
 
                         // COMPLETE
                         new InstantAction(() -> {
@@ -76,6 +77,7 @@ public class Red_Far extends OpModeCommand {
         r.periodic();
 
         telemetry.addLine("=== RED FAR AUTO ===");
+        telemetry.addData("Shoot Pos", "83.72, 18.49, 62°");
         telemetry.addData("Runtime", "%.1f sec", getRuntime());
         telemetry.addData("Current Step", currentStep);
         telemetry.addLine("");
@@ -90,14 +92,14 @@ public class Red_Far extends OpModeCommand {
             telemetry.addData("TY", "%.2f deg", r.limelight.getTy());
 
             if (distance > 0) {
-                org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera.ShooterConfig config =
-                        org.firstinspires.ftc.teamcode.config.util.ShooterCalculator_camera.getConfig(distance);
+                ShooterCalculator_camera.ShooterConfig config =
+                        ShooterCalculator_camera.getConfig(distance);
                 telemetry.addData("Calc Angle", "%.3f", config.angle);
                 telemetry.addData("Calc Vel", "%.0f", config.velocity);
             }
         } else {
             telemetry.addData("Target", "NO TAG 24");
-            telemetry.addData("Failsafe", "FAR (1500 / 0.65)");
+            telemetry.addData("Failsafe", "FAR (1630 / 0.8)");
         }
 
         telemetry.addLine("");

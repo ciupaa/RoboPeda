@@ -76,6 +76,7 @@ public class Blue_Far extends OpModeCommand {
         r.periodic();
 
         telemetry.addLine("=== BLUE FAR AUTO ===");
+        telemetry.addData("Shoot Pos", "60.28, 18.49, 118°");
         telemetry.addData("Runtime", "%.1f sec", getRuntime());
         telemetry.addData("Current Step", currentStep);
         telemetry.addLine("");
@@ -97,7 +98,7 @@ public class Blue_Far extends OpModeCommand {
             }
         } else {
             telemetry.addData("Target", "NO TAG 20");
-            telemetry.addData("Failsafe", "FAR (1500 / 0.65)");
+            telemetry.addData("Failsafe", "FAR (1630 / 0.8)");
         }
 
         telemetry.addLine("");
